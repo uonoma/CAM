@@ -1,0 +1,126 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2019-10-17 20:09+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: /home/uno/CAM_shared/CAMMaker1010/cam.pyw:48
+msgid "Node"
+msgstr "Knoten"
+
+msgid "Link"
+msgstr "Link"
+
+msgid "Comment"
+msgstr "Kommentar"
+
+msgid "Sheet"
+msgstr "Seite"
+
+msgid "Open"
+msgstr "Öffne"
+
+msgid "New"
+msgstr "Neu"
+
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Save as..."
+msgstr "Speichern unter..."
+
+msgid "Export as .csv"
+msgstr "Exportieren als .csv"
+
+msgid "File"
+msgstr "Datei"
+
+msgid "Edit"
+msgstr "Bearbeiten"
+
+msgid "Add"
+msgstr "Hinzufügen"
+
+msgid "Remove"
+msgstr "Entfernen"
+
+msgid "Add Node"
+msgstr "Knoten hinzufügen"
+
+msgid "Add Link"
+msgstr "Link hinzufügen"
+
+msgid "Add Bidirectional Link"
+msgstr "Bidirektionalen Link hinzufügen"
+
+msgid "Add Unidirectional Link"
+msgstr "Unidirektionalen Link hinzufügen"
+
+msgid "Bidirectional"
+msgstr "Bidirektional"
+
+msgid "Unidirectional"
+msgstr "Unidirektional"
+
+msgid "Add Comment"
+msgstr "Kommentar hinzufügen"
+
+msgid "Undo"
+msgstr "Rückgängig"
+
+msgid "Help"
+msgstr "Hilfe"
+
+msgid "View"
+msgstr "Ansicht"
+
+msgid "Resizable Nodes"
+msgstr "Knoten mit veränderbarer Größe"
+
+msgid "Default Radius For All Nodes"
+msgstr "Standardradius für alle Knoten"
+
+msgid "Combine Ambivalent And Neutral Nodes"
+msgstr "Ambivalente und neutrale Knoten kombinieren"
+
+msgid "Display Ambivalent Nodes Separately"
+msgstr "Ambivalente Knoten getrennt anzeigen"
+
+msgid "Aggregate CAMs"
+msgstr "CAMs aggregieren"
+
+msgid " Aggregated CAMs:"
+msgstr " Aggregierte CAMs:"
+
+msgid "Would you like to save your map?"
+msgstr "Soll die CAM gespeichert werden?"
+
+msgid "All Files"
+msgstr "Alle Dateien"
+
+msgid " Files"
+msgstr " Dateien"
+
+msgid "Select files to aggregate"
+msgstr "Wähle Dateien zum Aggregieren aus"
+
+msgid "Select file"
+msgstr "Wähle Datei aus"
+
+msgid "Substract CAMs"
+msgstr "CAMs abziehen"
+
+msgid "Export as .png"
+msgstr "Nach .png exportieren"
+
