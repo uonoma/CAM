@@ -513,7 +513,7 @@ class Sheet:
 		fnBaseLong, fnExt = os.path.splitext(self.filename)[0], os.path.splitext(self.filename)[1]
 		fnBase = os.path.basename(fnBaseLong)
 		nodesFileName = fnBaseLong + "_blocks" + fnExt
-		csvFileNodes = open(nodesFileName, mode = 'w+')
+		csvFileNodes = open(nodesFileName, mode = 'w+',  newline='')
 		csvWriterNodes = csv.writer(csvFileNodes, delimiter=delim, quoting=csv.QUOTE_NONE,
 			escapechar='\\')
 		csvWriterNodes.writerow(CSVFIELDS_NODES_V4)
@@ -540,7 +540,7 @@ class Sheet:
 			csvWriterNodes.writerow(r)
 
 		linksFileName = fnBaseLong + "_links" + fnExt
-		csvFileLinks = open(linksFileName, mode='w+')
+		csvFileLinks = open(linksFileName, mode='w+', newline='')
 		csvWriterLinks = csv.writer(csvFileLinks, delimiter=delim, quoting=csv.QUOTE_NONE,
 									escapechar='\\')
 		csvWriterLinks.writerow(CSVFIELDS_LINKS_V2)

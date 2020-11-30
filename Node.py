@@ -359,15 +359,20 @@ class Node:
 		self.tk_text.bind('<Key>', self.resizeText)
 
 	def selectToggle(self, event=[]):
+		# Deleted nodes are read-only
+		if self.diffTag == "D":
+			return
+
 		if self.parentSheet.selectedNode != self.index:
 			self.parentSheet.selectedNode = self.index
 			# unselect all nodes
 			for n in self.parentSheet.nodes:
-				self.canvas.itemconfig(n.shapeIndex, outline=self.cs.toHex(n.bcolour),
+				if n.diffTag != "D":
+					self.canvas.itemconfig(n.shapeIndex, outline=self.cs.toHex(n.bcolour),
 									   activeoutline=self.cs.toHex(n.bcolour))
-				if n.polygonIndex > -1:
-					self.canvas.itemconfig(n.polygonIndex, outline= self.cs.toHex(n.bcolour),
-										   activeoutline=self.cs.toHex(n.bcolour))
+					if n.polygonIndex > -1:
+						self.canvas.itemconfig(n.polygonIndex, outline= self.cs.toHex(n.bcolour),
+											   activeoutline=self.cs.toHex(n.bcolour))
 			# use highlight color for selected node
 			self.canvas.itemconfig(self.shapeIndex, outline=self.cs.toHex(self.cs.highlight2),
 								activeoutline=self.cs.toHex(self.cs.highlight2))
@@ -376,7 +381,11 @@ class Node:
 									   activeoutline=self.cs.toHex(self.cs.highlight2))
 		else:
 			self.parentSheet.selectedNode = -99
-			self.canvas.itemconfig(self.shapeIndex, outline=self.cs.toHex(self.bcolour))
+			self.canvas.itemconfig(self.shapeIndex, outline=self.cs.toHex(self.bcolour),
+								   activeoutline = self.cs.toHex(self.bcolour))
+			if self.polygonIndex > -1:
+				self.canvas.itemconfig(self.polygonIndex, outline=self.cs.toHex(self.bcolour),
+									   activeoutline = self.cs.toHex(self.bcolour))
 
 	def disableText(self, event=[]):
 		if not self.textDisabled:
