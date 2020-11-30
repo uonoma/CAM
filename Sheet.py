@@ -47,6 +47,9 @@ class Sheet:
 
 		self.fileOpen = False
 
+		# Delete currently selected node on <Delete>
+		self.canvas.bind_all('<Delete>', self.deleteSelected)
+
 		# drag nodes on mouse click/release
 		self.canvas.bind('<Button-1>', self.startDrag)
 		self.canvas.bind('<B1-Motion>', self.onDrag)
@@ -54,6 +57,9 @@ class Sheet:
 
 		# save sheet on Ctrl + S
 		self.root.bind('<Control-Key-s>', self.saveFileAs)
+
+		# delete node on double right click
+		self.canvas.bind('<ButtonRelease-1>', self.endNodeDrag)
 
 		# set default background colour
 		self.canvas.configure(bg=self.cs.toHex(self.cs.background))
@@ -73,9 +79,12 @@ class Sheet:
 		self.nodes = []
 		self.links = []
 
+		# Index of currently selected node. -99 per default (no selected node)
+		self.selectedNode = -99
+
 		# Side bar with numeric data/aggregated information
 		self.sidebar = Frame(root, width=50, bg='white', height=200,
-		borderwidth=2, highlightthickness=1, highlightbackground="black")
+			borderwidth=2, highlightthickness=1, highlightbackground="black")
 		self.infobox = Label(self.sidebar, text="Statistics:")
 
 		self.menu = MainMenu(self)
@@ -128,6 +137,13 @@ class Sheet:
 				t.moveByPix(delta[0],delta[1])
 			for l in self.links:
 				l.updateLine()
+
+	def deleteSelected(self, event=[]):
+		if self.selectedNode == -99:
+			return
+		else:
+			n = self.getNode(self.selectedNode)
+			n.removeByClick()
 
 	def computeDiffCam(self, cam1, cam2):
 		archive1 = zipfile.ZipFile(cam1, 'r')
@@ -520,7 +536,7 @@ class Sheet:
 				val = "positive strong"
 			elif n.valence == -99:
 				val = "ambivalent"
-			r = [n.index, n.text, n.coords[0], n.coords[1], 2*n.r, 2*n.r, val, 0, n.index, "", "", 1, fnBase, 0]
+			r = [n.index, n.text, n.coords[0], n.coords[1], 2*n.r, 2*n.r, val, 0, n.index, "", "", 1, fnBase, n.removed]
 			csvWriterNodes.writerow(r)
 
 		linksFileName = fnBaseLong + "_links" + fnExt

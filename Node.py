@@ -71,6 +71,9 @@ class Node:
 		self.text = ""
 		self.commentText = comment
 
+		# True if node was removed by click
+		self.removed = False
+
 		# Node is read from file
 		if data != {}:
 			self.text = data['text']
@@ -152,8 +155,8 @@ class Node:
 			self.valence = int(val)
 				
 		self.thickness = border['thickness']
-		colour = border['colour']
-		self.bcolour, self.fcolour, self.fcolour_pre = self.parseColours(colour)
+		self.colour = border['colour']
+		self.bcolour, self.fcolour, self.fcolour_pre = self.parseColours(self.colour)
 		return
 
 	def reDraw(self, init=False):
@@ -337,6 +340,11 @@ class Node:
 			self.comment.updatePos(self.coords)
 
 	def setBinds(self):
+		# Select on double-left click
+		self.canvas.tag_bind(self.shapeIndex, '<Double-1>', self.selectToggle)
+		if self.polygonIndex > -1:
+			self.canvas.tag_bind(self.polygonIndex, '<Double-1>', self.selectToggle)
+
 		# Drag circle/rectangle nodes to change location
 		self.canvas.tag_bind(self.shapeIndex, '<Button-1>', self.startDrag)
 		self.canvas.tag_bind(self.shapeIndex, '<ButtonRelease-1>', self.endDrag)
@@ -349,6 +357,26 @@ class Node:
 			self.canvas.tag_bind(self.polygonIndex, '<B1-Motion>', self.onLeftDrag)
 
 		self.tk_text.bind('<Key>', self.resizeText)
+
+	def selectToggle(self, event=[]):
+		if self.parentSheet.selectedNode != self.index:
+			self.parentSheet.selectedNode = self.index
+			# unselect all nodes
+			for n in self.parentSheet.nodes:
+				self.canvas.itemconfig(n.shapeIndex, outline=self.cs.toHex(n.bcolour),
+									   activeoutline=self.cs.toHex(n.bcolour))
+				if n.polygonIndex > -1:
+					self.canvas.itemconfig(n.polygonIndex, outline= self.cs.toHex(n.bcolour),
+										   activeoutline=self.cs.toHex(n.bcolour))
+			# use highlight color for selected node
+			self.canvas.itemconfig(self.shapeIndex, outline=self.cs.toHex(self.cs.highlight2),
+								activeoutline=self.cs.toHex(self.cs.highlight2))
+			if self.polygonIndex > -1:
+				self.canvas.itemconfig(self.polygonIndex, outline=self.cs.toHex(self.cs.highlight2),
+									   activeoutline=self.cs.toHex(self.cs.highlight2))
+		else:
+			self.parentSheet.selectedNode = -99
+			self.canvas.itemconfig(self.shapeIndex, outline=self.cs.toHex(self.bcolour))
 
 	def disableText(self, event=[]):
 		if not self.textDisabled:
@@ -434,6 +462,10 @@ class Node:
 	def moveTo(self, x, y):
 		# must provide normalized coords (0-1)
 		self.moveBy((x - self.loc[0], y - self.loc[1]))
+
+	def removeByClick(self):
+		self.removed = True
+		self.remove()
 
 	def remove(self, event=[]):
 		self.canvas.delete(self.shapeIndex)
