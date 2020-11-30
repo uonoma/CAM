@@ -53,7 +53,7 @@ class Sheet:
 		self.canvas.bind('<ButtonRelease-1>', self.endNodeDrag)
 
 		# save sheet on Ctrl + S
-		self.root.bind('<Control-Key-s>', self.saveData)
+		self.root.bind('<Control-Key-s>', self.saveFileAs)
 
 		# set default background colour
 		self.canvas.configure(bg=self.cs.toHex(self.cs.background))
@@ -455,77 +455,129 @@ class Sheet:
 				return n.index
 		return 1
 
-	# Deprecated
-	def saveData(self, event=[]):
-		if self.fileName == "":
-			self.saveFileAs()
-			data = {}
-			data['root_geometry'] = self.root.winfo_geometry()
-			data['nodes'] = []
+# Deprecated. New function: exportAsCsv
 
-		for n in self.nodes:
-			nData={}
-			nData['acceptance'] = n.acceptance
-			nData['index'] = n.index
-			nData['coords'] = n.coords
-			if not n.acceptance:
-				nData['radius'] = n.r
-				nData['text'] = n.getText()
-				nData['valence'] = int(n.valence)
-				nData['read-only'] = n.readOnly
-				nData['comment'] = n.commentText
-
-			data['nodes'].append(nData)
-
-			data['links'] = []
-		for l in self.links:
-			lData={}
-			lData['nA'] = l.nA.index
-			lData['nB'] = l.nB.index
-			lData['directed'] = l.directed
-			lData['strength'] = max(l.strengthA, l.strengthB)
-			lData['comment'] = l.commentText
-			if not l.dashed == ():
-				lData['strength'] = -lData['strength']
-			data['links'].append(lData)
-
-		self.exportAsCsv()
-
-		self.pulse()
-
-		return
+#	def saveData(self, event=[]):
+#		data = {}
+#		data['root_geometry'] = self.root.winfo_geometry()
+#		data['nodes'] = []
+#
+#		# acceptance field is deprecated
+#		for n in self.nodes:
+#			nData={}
+#		#	nData['acceptance'] = n.acceptance
+#			nData['index'] = n.index
+#			nData['coords'] = n.coords
+#			nData['radius'] = n.r
+#			nData['text'] = n.getText()
+#			nData['valence'] = int(n.valence)
+#			nData['read-only'] = n.readOnly
+#			nData['comment'] = n.commentText
+#
+#			data['nodes'].append(nData)
+#
+#			data['links'] = []
+#		for l in self.links:
+#			lData={}
+#			lData['nA'] = l.nA.index
+#			lData['nB'] = l.nB.index
+#			lData['directed'] = l.directed
+#			lData['strength'] = max(l.strengthA, l.strengthB)
+#			lData['comment'] = l.commentText
+#			if not l.dashed == ():
+#				lData['strength'] = -lData['strength']
+#			data['links'].append(lData)
+#
+#		self.exportAsCsv()
+#
+#		return
 
 	def exportAsCsv(self):
-		self.fileName = tkinter.filedialog.asksaveasfilename(initialdir =
-		FILEDIR,title = SELECTFILESTR, defaultextension=".csv", filetypes =
-		(("Comma-separated values"+ FILESSTR,"*.csv"),(ALLFILESSTR,"*.*")))
 		delim = ';'
-		csvFile = open(self.fileName, mode = 'w+')
-		csvWriter = csv.writer(csvFile, delimiter=delim, quoting=csv.QUOTE_NONE,
+		fnBaseLong, fnExt = os.path.splitext(self.filename)[0], os.path.splitext(self.filename)[1]
+		fnBase = os.path.basename(fnBaseLong)
+		nodesFileName = fnBaseLong + "_blocks" + fnExt
+		csvFileNodes = open(nodesFileName, mode = 'w+')
+		csvWriterNodes = csv.writer(csvFileNodes, delimiter=delim, quoting=csv.QUOTE_NONE,
 			escapechar='\\')
-		row1 = []
-		row2 = []
-		if self.diffCam:
-			for i in range(0, len(self.diffCamDataLabels)):
-				row1.append(self.diffCamDataLabels[i])
-				row2.append(self.diffCamData[i])
-			csvWriter.writerow(row1)
-			csvWriter.writerow(row2)
-		else:	
-			rows = []
-			nodes = self.nodes
-			links = self.links
-			for n in nodes:
-				if n.acceptance:
-					rows.append([n.index, "Acceptance", "", n.initTime])
-				else:
-					rows.append([n.index, n.text, "", n.initTime])
-				for l in links:
-					if n.index == l.nB.index:
-						rows.append([n.index, l.nA.index, max(l.strengthA,
-						l.strengthB), l.initTime])
-			for r in rows:
-				csvWriter.writerow(r)
+		csvWriterNodes.writerow(CSVFIELDS_NODES_V4)
+		for n in self.nodes:
+	#		CSVFIELDS_NODES_V4 = ['id', 'title', 'x_pos', 'y_pos', 'width', 'height', 'shape', 'creator', 'num',
+	#							  'comment', 'timestamp', 'modifiable', 'CAM', 'removed']
+			if n.valence == 0:
+				val = "neutral"
+			elif n.valence == -1:
+				val = "negative weak"
+			elif n.valence == -2:
+				val = "negative"
+			elif n.valence == -3:
+				val = "negative strong"
+			elif n.valence == 1:
+				val = "positive weak"
+			elif n.valence == 2:
+				val = "positive"
+			elif n.valence == 3:
+				val = "positive strong"
+			elif n.valence == -99:
+				val = "ambivalent"
+			r = [n.index, n.text, n.coords[0], n.coords[1], 2*n.r, 2*n.r, val, 0, n.index, "", "", 1, fnBase, 0]
+			csvWriterNodes.writerow(r)
+
+		linksFileName = fnBaseLong + "_links" + fnExt
+		csvFileLinks = open(linksFileName, mode='w+')
+		csvWriterLinks = csv.writer(csvFileLinks, delimiter=delim, quoting=csv.QUOTE_NONE,
+									escapechar='\\')
+		csvWriterLinks.writerow(CSVFIELDS_LINKS_V2)
+
+		i = 0
+		for l in self.links:
+			if l.strength == 3:
+				strength = "Solid-Strong"
+			elif l.strength == 2:
+				strength = "Solid"
+			elif l.strength == 1:
+				strength = "Solid-Weak"
+			elif l.strength == -1:
+				strength = "Dashed-Weak"
+			elif l.strength == -2:
+				strength = "Dashed"
+			elif l.strength == -3:
+				strength = "Dashed-Strong"
+
+			if l.directed == 1:
+				dir = "uni"
+			elif l.directed == 0:
+				dir = "none"
+
+		#	CSVFIELDS_LINKS_V2 = ['id', 'starting_block', 'ending_block', 'line_style', 'creator', 'num', 'arrow_type',
+		#						  'timestamp', 'CAM']
+			r = [i, l.nA.index, l.nB.index, strength, "", i, dir, "", fnBase]
+			csvWriterLinks.writerow(r)
+			i = i + 1
+
+
+
+#		if self.diffCam:
+#			for i in range(0, len(self.diffCamDataLabels)):
+#				row1.append(self.diffCamDataLabels[i])
+#				row2.append(self.diffCamData[i])
+#			csvWriter.writerow(row1)
+#			csvWriter.writerow(row2)
+#		else:
+#			rows = []
+#			nodes = self.nodes
+#			links = self.links
+#			for n in nodes:
+#				if n.acceptance:
+#					rows.append([n.index, "Acceptance", "", n.initTime])
+#				else:
+#					rows.append([n.index, n.text, "", n.initTime])
+#				for l in links:
+#					if n.index == l.nB.index:
+#						rows.append([n.index, l.nA.index, max(l.strengthA,
+#						l.strengthB), l.initTime])
+#			for r in rows:
+#				csvWriter.writerow(r)
 
 	def openFilesForDiff(self):
 		if self.fileOpen:
@@ -559,10 +611,11 @@ class Sheet:
 		self.links = []
 
 	def saveFileAs(self):
-		self.fileName = tkinter.filedialog.asksaveasfilename(initialdir =
-		FILEDIR,title = SELECTFILESTR, defaultextension=".json", filetypes = (("Map"+
-			FILESSTR,"*.json"),(ALLFILESSTR,"*.*")))
-		self.saveData()
+		self.filename = tkinter.filedialog.asksaveasfilename(initialdir =
+					FILEDIR,title = SELECTFILESTR, defaultextension=".csv", filetypes =
+					(("CSV "+ FILESSTR,"*.csv"),(ALLFILESSTR,"*.*")))
+		if self.fileName != "":
+			self.exportAsCsv()
 
 	def nodeDist(self, nA, nB):
 		return dist(nA.coords, nB.coords)
@@ -691,22 +744,6 @@ class Sheet:
 					ltextB = n.text
 			linksWithTexts.append({(ltextA, ltextB): l})
 		return linksWithTexts
-
-	def pulse(self, stage=0):
-		
-		total_stages=20
-
-		f = 1.0*stage/total_stages
-		
-		if stage<=total_stages:
-			bkgColour = g.shadeN([self.cs.background, self.cs.background, self.cs.background], [0,0.5,1], f)
-			
-			self.canvas.configure(bg=self.cs.toHex(bkgColour))
-
-		if stage < total_stages:
-			t = threading.Timer(0.01, self.pulse, [stage+1])
-			t.daemon = True
-			t.start()
 
 	def calculateNodeStatistics(self, key):
 		distribution = self.valenceDistributions[key]

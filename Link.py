@@ -54,6 +54,8 @@ class Link:
 		# Negative link strength -> Dashed = (5,5)
 		self.dashed = ()
 
+		self.strength = strength
+
 		if strength < 0:
 			self.dashed = (5, 5)
 			strength = -strength
@@ -88,6 +90,7 @@ class Link:
 
 		if comment == "":
 			self.hasComment = False
+			self.commentText = ""
 		else:
 			self.hasComment = True
 			self.commentText = comment

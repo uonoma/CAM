@@ -1,8 +1,6 @@
 import itertools
-import subprocess
 
 from Comment import *
-from datetime import datetime
 from header import *
 from i18n import *
 from PIL import ImageTk, Image, ImageGrab, ImageDraw

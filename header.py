@@ -22,6 +22,9 @@ CSVFIELDS_NODES_V2 = ['id', 'title', 'x_pos', 'y_pos', 'shape', 'creator', 'num'
 CSVFIELDS_NODES_V3 = ['id', 'title', 'x_pos', 'y_pos', 'width', 'height', 'shape', 'creator', 'num',
 'comment', 'timestamp', 'modifiable', 'CAM']
 
+CSVFIELDS_NODES_V4 = ['id', 'title', 'x_pos', 'y_pos', 'width', 'height', 'shape', 'creator', 'num',
+                      'comment', 'timestamp', 'modifiable', 'CAM', 'removed']
+
 CSVFIELDS_LINKS_V2 = ['id','starting_block','ending_block','line_style','creator','num','arrow_type','timestamp', 'CAM']
 
 CSVFIELDS_NODES_V1 = ['id', 'title', 'x_pos', 'y_pos', 'shape', 'creator', 'links', 'num', 'comment', 'timestamp', 'modifiable']
