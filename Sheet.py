@@ -142,7 +142,7 @@ class Sheet:
 		if self.selectedNode == -99:
 			return
 		else:
-			n = self.getNode(self.selectedNode)
+			n = self.getNodeByIndex(self.selectedNode)
 			n.removeByClick()
 
 	def computeDiffCam(self, cam1, cam2):
@@ -156,6 +156,10 @@ class Sheet:
 				nodesFile1 = archive1.open(n)
 			elif n.endswith("links.csv"):
 				linksFile1 = archive1.open(n)
+
+		'''
+        Read nodes from blocks.csv (pre-CAM)
+        '''
 		nodes1 = StringIO(nodesFile1.read().decode('utf-8'))
 		nodesReader1 = csv.reader(nodes1)
 		firstLnNodes = next(nodesReader1)
@@ -175,9 +179,7 @@ class Sheet:
 		assert firstLnLinks in [CSVFIELDS_LINKS_V1, CSVFIELDS_LINKS_V2],\
 			"Wrong column names in links .csv file"
 		version = nodesversion
-		"Wrong column names in nodes .csv file."
 		nodesData1 = {}
-		nodesIndices1 = {}
 		linksData1 = {}
 
 		for row in nodesReader1:
@@ -206,11 +208,16 @@ class Sheet:
 			if version == 1:
 				index = float(row[7])
 			text = row[1]
-			nodesIndices1.update({index : text})
-			nodesData1.update({text : valence})
 
+			# Neighbors list updated later
+			neighbors = []
+
+			nodesData1.update({text: (index, valence)})
+
+		'''
+		Read nodes from blocks.csv (post-CAM)
+		'''
 		nodesData2 = {}
-		nodesIndices2 = {}
 		linksData2 = {}
 		archive2 = zipfile.ZipFile(cam2, 'r')
 		names2 = archive2.namelist()
@@ -265,16 +272,19 @@ class Sheet:
 			if version == 1:
 				index = float(row[7])
 			text = row[1]
-			nodesIndices2.update({index : text})
-			nodesData2.update({text : valence})
+			neighbors = []
+			nodesData2.update({text : (index, valence)})
 
-	# Draw diff nodes
+		'''
+		Create diff-CAM nodes
+		'''
+
 		pixelX = self.root.winfo_width()
 		pixelY = self.root.winfo_height()
-		for (k1, v1) in nodesData1.items():
+		for (t1, (i1, v1)) in nodesData1.items():
 			# Node both in pre and post CAM
-			if k1 in nodesData2:
-				diffVal = nodesData2[k1]
+			if t1 in nodesData2:
+				diffVal = v1
 				diffTag = str(v1)
 				# Draw deleted nodes in middle third of the window
 				rand_y = randint(int((pixelY-150)/3), int((pixelY-150)*2/3))
@@ -285,25 +295,26 @@ class Sheet:
 				# Draw deleted nodes in lower third of the window
 				rand_y = randint(int((pixelY - 150)*2/3), pixelY - 150)
 			rand_x = randint(10, pixelX - 300)
-			self.addNode((rand_x, rand_y), data={'index':
-				self.getNewIndex(), 'valence': diffVal,
-				'text': k1 , 'radius': 50, 'coords': [rand_x, rand_y],
-				'read-only': 1, 'acceptance': False}, diffTag=diffTag, draw=True)
+			self.addNode((rand_x, rand_y), data={'index': self.getNewIndex(), 'valence': diffVal,
+												 'text': t1 , 'radius': 50, 'coords': [rand_x, rand_y],
+												 'read-only': 1, 'acceptance': False}, diffTag=diffTag, draw=True)
 
-		for (k2, v2) in nodesData2.items():
+		for (t2, (i2, v2)) in nodesData2.items():
 			# New node added in post CAM:
-			if k2 not in nodesData1:
+			if t2 not in nodesData1:
 				diffVal = v2
 				diffTag = "A"
 				rand_y = randint(100, int((pixelY - 150) / 3))
 				# Draw added nodes in upper third of the window
 				rand_x = randint(10, pixelX - 300)
-				self.addNode((rand_x, rand_y), data={'index':
-					self.getNewIndex(), 'valence': diffVal,
-					'text': k2 , 'radius': 50, 'coords': [rand_x, rand_y],
-					'read-only': 1, 'acceptance': False}, diffTag=diffTag, draw=True)
+				self.addNode((rand_x, rand_y), data={'index': self.getNewIndex(), 'valence': diffVal,
+													 'text': t2 , 'radius': 50, 'coords': [rand_x, rand_y],
+													 'read-only': 1, 'acceptance': False}, diffTag=diffTag, draw=True)
 
-		# Create diff links:
+		'''
+        Read links from links.csv (pre-CAM)
+        '''
+
 		for row in linksReader1:
 			strength = 0
 			directed = 1
@@ -332,17 +343,28 @@ class Sheet:
 					directed = 0
 			startingNodeIndex = None
 			endNodeIndex = None
-			for (k,v) in nodesIndices1.items():
-				if int(row[1]) == k:
-					startingNodeText = nodesIndices1[k]
+
+			for (t,(i, v)) in nodesData1.items():
+				if int(row[1]) == i:
+					startingNodeText = t
 					startingNodeIndex = self.lookupNodeIndex(startingNodeText)
-				elif int(row[2]) == k:
-					endNodeText = nodesIndices1[k]
+				elif int(row[2]) == i:
+					endNodeText = t
 					endNodeIndex = self.lookupNodeIndex(endNodeText)
 
 			directed = directed
 			strength = strength
+
 			linksData1.update({(startingNodeIndex, endNodeIndex, directed) : strength})
+
+			# Update node neighbors
+
+			self.getNodeByText(startingNodeText).addNeighbor(i1=endNodeText)
+			self.getNodeByText(endNodeText).addNeighbor(i1=startingNodeText)
+
+		'''
+		Read links from links.csv (post-CAM)
+		'''
 
 		for row in linksReader2:
 			strength = 0
@@ -373,19 +395,25 @@ class Sheet:
 			startingNodeIndex = None
 			endNodeIndex = None
 
-			for (k,v) in nodesIndices2.items():
-				if int(row[1]) == k:
-					nodeText = nodesIndices2[k]
-					startingNodeIndex = self.lookupNodeIndex(nodeText)
-				if int(row[2]) == k:
-					nodeText = nodesIndices2[k]
-					endNodeIndex = self.lookupNodeIndex(nodeText)
+			for (t, (i, v)) in nodesData2.items():
+				if int(row[1]) == i:
+					startingNodeText = t
+					startingNodeIndex = self.lookupNodeIndex(endNodeText)
+				elif int(row[2]) == i:
+					endNodeText = t
+					endNodeIndex = self.lookupNodeIndex(endNodeText)
 
 			directed = directed
 			strength = strength
 			linksData2.update({(startingNodeIndex, endNodeIndex, directed) : strength})
 
-	# Diff links part:
+			# Update node neighbors
+			self.getNodeByText(startingNodeText).addNeighbor(i2=endNodeText)
+			self.getNodeByText(endNodeText).addNeighbor(i2=startingNodeText)
+
+		'''
+		Draw diff-CAM links
+		'''
 		for (k,v) in linksData1.items():
 			if k in linksData2:
 				strength = linksData2[k]
@@ -407,62 +435,129 @@ class Sheet:
 					self.addLink(directed=k[2], strength=strength, comment="",
 						draw=True, diffTag=diffTag)
 
-		# Calculate numeric delta for info label
-		posDiff = 0
-		posDiffNum = 0
-		negDiff = 0
-		negDiffNum = 0
-		neutralDiff = 0
-		neutralDiffNum = 0
-		ambDiff = 0
-		ambDiffNum = 0
-		onlyinPre = {}
-		onlyinPost = {}
+		''' 
+		Calculate statistics 
+		'''
 
-		for k1, v1 in nodesData1.items():
-			if k1 in nodesData2:
-				if v1 > 0:
-					posDiff = posDiff + (nodesData2[k1] - v1)
-					posDiffNum = posDiffNum + 1
-				elif v1 < 0 and v1 > -99:
-					negDiff = negDiff + (nodesData2[k1] - v1)
-					negDiffNum = negDiffNum + 1
-				elif v1 == 0:
-					neutralDiff = neutralDiff + nodesData2[k1]
-					neutralDiffNum = neutralDiffNum + 1
-				elif v1 == -99:
-					if not nodesData2[k1] == -99:
-						ambDiff = ambDiff + nodesData2[k1]
-					ambDiffNum = ambDiffNum + 1
-			else:
-				onlyinPre.update({ k1 : v1} )
-		for k2, v2 in nodesData2.items():
-			if k2 not in nodesData1:
-				onlyinPost.update({k2 : v2} )
-		posDiffAvg = round(posDiff / max(posDiffNum,1), 4)
-		negDiffAvg = round(negDiff / max(negDiffNum,1), 4)
-		neutralDiffAvg = round(neutralDiff / max(neutralDiffNum,1), 4)
-		ambDiffAvg = round(ambDiff / max(ambDiffNum, 1), 4)
-		onlyinPreStr = ""
-		onlyinPostStr = ""
-		for (k1, v1) in onlyinPre.items():
-			onlyinPreStr = onlyinPreStr + "\n" + str(k1) + ":" + str(v1)
-		for (k2, v2) in onlyinPost.items():
-			onlyinPostStr = onlyinPostStr + "\n" + str(k2) + ":" + str(v2)
+		# Statistics dictionaries for pre- and post-CAMs
+		preNodes = {}
+		postNodes = {}
 
-		self.diffCamDataLabels = ["Veränderung positiver Knoten (prä-post):\n",
-			"Veränderung negativer Knoten (prä-post):\n",
-			"Veränderung neutraler Knoten (prä-post):\n",
-			"Veränderung ambivalenter Knoten (prä-post):\n",
-			"Entfallene Knoten (nur in prä): ",
-			"Hinzugefügte Knoten (nur in post): "]
-		self.diffCamData = [str(posDiffAvg), str(negDiffAvg),
-			str(neutralDiffAvg), str(ambDiffAvg),onlyinPreStr, onlyinPostStr]
-		diffStr = ""
-		for i in range(0, len(self.diffCamDataLabels)):
-			diffStr = diffStr + "\n" + str(self.diffCamDataLabels[i]) +\
-			str(self.diffCamData[i] + "\n")
-		self.openInfoBox(diffStr)
+		# Number of nodes, total & sorted by valence
+		preNodes['total'] = 0
+		preNodes['pos'] = 0
+		preNodes['neg'] = 0
+		preNodes['neutral'] = 0
+		preNodes['amb'] = 0
+		# Average valence
+		preNodes['avgValence'] = 0
+
+		# Same for post-CAM
+		postNodes['total'] = 0
+		postNodes['pos'] = 0
+		postNodes['neg'] = 0
+		postNodes['neutral'] = 0
+		postNodes['amb'] = 0
+		postNodes['avgValence'] = 0
+
+		# TODO: Create link dictionaries
+		# Dictionary keys: 'total', 'pos', 'neg'
+		preLinks = {}
+		postLinks = {}
+
+		# Calculate statistical parameters & fill dictionaries
+		for (t, (i,v)) in nodesData1.items():
+			preNodes['total'] = preNodes['total'] + 1
+			preNodes['avgValence'] += v
+			if int(v) > 0:
+				preNodes['pos'] = preNodes['pos'] + 1
+			elif int(v) < 0 and int(v) > -99:
+				preNodes['neg'] = preNodes['neg'] + 1
+			elif int(v) == 0:
+				preNodes['neutral'] = preNodes['neutral'] + 1
+			elif int(v) == -99:
+				preNodes['amb'] = preNodes['amb'] + 1
+		preNodes['avgValence'] = preNodes['avgValence']/preNodes['total']
+
+		# Same for post-CAM
+		for (i, (t, v)) in nodesData2.items():
+			postNodes['total'] = postNodes['total'] + 1
+			postNodes['avgValence'] += v
+			if int(v) > 0:
+				postNodes['pos'] = postNodes['pos'] + 1
+			elif int(v) < 0 and int(v) > -99:
+				postNodes['neg'] = postNodes['neg'] + 1
+			elif int(v) == 0:
+				postNodes['neutral'] = postNodes['neutral'] + 1
+			elif int(v) == -99:
+				postNodes['amb'] = postNodes['amb'] + 1
+		postNodes['avgValence'] = preNodes['avgValence']/preNodes['total']
+
+		self.statisticsStr = "### PRE-CAM: NODES ###"
+		for (k,v) in preNodes.items():
+			self.statisticsStr += "\n%s: %d" %(k, v)
+
+		self.statisticsStr += "\n### POST-CAM-NODES ###"
+		for (k, v) in postNodes.items():
+			self.statisticsStr += "\n%s: %d" % (k, v)
+
+		print(self.statisticsStr)
+
+
+#		posDiffNum = 0
+#		negDiff = 0
+#		negDiffNum = 0
+#		neutralDiff = 0
+#		neutralDiffNum = 0
+#		ambDiff = 0
+#		ambDiffNum = 0
+#		onlyinPre = {}
+#		onlyinPost = {}
+
+#		for k1, v1 in nodesData1.items():
+#			if k1 in nodesData2:
+#				if v1 > 0:
+#					posDiff = posDiff + (nodesData2[k1] - v1)
+#					posDiffNum = posDiffNum + 1
+#				elif v1 < 0 and v1 > -99:
+#					negDiff = negDiff + (nodesData2[k1] - v1)
+#					negDiffNum = negDiffNum + 1
+#				elif v1 == 0:
+#					neutralDiff = neutralDiff + nodesData2[k1]
+#					neutralDiffNum = neutralDiffNum + 1
+#				elif v1 == -99:
+#					if not nodesData2[k1] == -99:
+#						ambDiff = ambDiff + nodesData2[k1]
+#					ambDiffNum = ambDiffNum + 1
+#			else:
+#				onlyinPre.update({ k1 : v1} )
+#		for k2, v2 in nodesData2.items():
+#			if k2 not in nodesData1:
+#				onlyinPost.update({k2 : v2} )
+#		posDiffAvg = round(posDiff / max(posDiffNum,1), 4)
+#		negDiffAvg = round(negDiff / max(negDiffNum,1), 4)
+#		neutralDiffAvg = round(neutralDiff / max(neutralDiffNum,1), 4)
+#		ambDiffAvg = round(ambDiff / max(ambDiffNum, 1), 4)
+#		onlyinPreStr = ""
+#		onlyinPostStr = ""
+#		for (k1, v1) in onlyinPre.items():
+#			onlyinPreStr = onlyinPreStr + "\n" + str(k1) + ":" + str(v1)
+#		for (k2, v2) in onlyinPost.items():
+#			onlyinPostStr = onlyinPostStr + "\n" + str(k2) + ":" + str(v2)
+#
+#		self.diffCamDataLabels = ["Veränderung positiver Knoten (prä-post):\n",
+#			"Veränderung negativer Knoten (prä-post):\n",
+#			"Veränderung neutraler Knoten (prä-post):\n",
+#			"Veränderung ambivalenter Knoten (prä-post):\n",
+#			"Entfallene Knoten (nur in prä): ",
+#			"Hinzugefügte Knoten (nur in post): "]
+#		self.diffCamData = [str(posDiffAvg), str(negDiffAvg),
+#			str(neutralDiffAvg), str(ambDiffAvg),onlyinPreStr, onlyinPostStr]
+#		diffStr = ""
+#		for i in range(0, len(self.diffCamDataLabels)):
+#			diffStr = diffStr + "\n" + str(self.diffCamDataLabels[i]) +\
+#			str(self.diffCamData[i] + "\n")
+#		self.openInfoBox(diffStr)
 
 	def lookupNodeIndex(self, text):
 		for n in self.nodes:
@@ -470,6 +565,15 @@ class Sheet:
 			if text == pureText:
 				return n.index
 		return 1
+
+	def allIndices(self):
+		indices = [n.index for n in self.nodes]
+		return indices
+
+	def getIndex(self, text):
+		for n in self.nodes:
+			if n.text == text:
+				return n.index
 
 # Deprecated. New function: exportAsCsv
 
@@ -665,7 +769,7 @@ class Sheet:
 		return node.index
 
 	def removeNode(self, index):
-		n = self.getNode(index)
+		n = self.getNodeByIndex(index)
 
 		# remove all links connected to node
 		ls = len(self.links)
@@ -699,27 +803,32 @@ class Sheet:
 
 		if nA != nB:
 			if self.hasLink(nA, nB):
-				offset = min(self.getNode(nB).r, self.getNode(nA).r)/2
+				offset = min(self.getNodeByIndex(nB).r, self.getNodeByIndex(nA).r)/2
 			else:
 				offset = 0
-			self.links.append(Link(self, self.getNode(nA), self.getNode(nB),
+			self.links.append(Link(self, self.getNodeByIndex(nA), self.getNodeByIndex(nB),
 			directed, strength, label, coordOffset=offset,
 			comment=comment, draw=draw, diffTag=diffTag))
 
-		TA = self.getNode(nA)
+		TA = self.getNodeByIndex(nA)
 		TA.canvas.itemconfig(TA.index)
 		
 		# reset link assignments
 		self.resetLinkData()
 
-	def getNode(self, index):
+	def getNodeByIndex(self, index):
 		for n1 in self.nodes:
 			if n1.index == index:
 				return n1
 
+	def getNodeByText(self, text):
+		for n in self.nodes:
+			if n.text == text:
+				return n
+
 	def getLink(self, indexA, indexB):
-		nodeA = self.getNode(indexA)
-		nodeB = self.getNode(indexB)
+		nodeA = self.getNodeByIndex(indexA)
+		nodeB = self.getNodeByIndex(indexB)
 		for l in self.links:
 			if (nodeA == l.nA and nodeB == l.nB) or (nodeA == l.nB and
 			nodeB == l.nA):
@@ -734,8 +843,8 @@ class Sheet:
 
 	def hasLink(self, nA, nB):
 
-		TA = self.getNode(nA)
-		TB = self.getNode(nB)
+		TA = self.getNodeByIndex(nA)
+		TB = self.getNodeByIndex(nB)
 
 		for l in self.links:
 
@@ -761,62 +870,63 @@ class Sheet:
 			linksWithTexts.append({(ltextA, ltextB): l})
 		return linksWithTexts
 
-	def calculateNodeStatistics(self, key):
-		distribution = self.valenceDistributions[key]
-		# '1: [], '2': []...
-		median = ()
-		numVals = 0
-		totalNodes = 0
-		avgValence = 0
-		neutralNodes = len(distribution["0"])
-		neg1Nodes = len(distribution["-1"])
-		neg2Nodes = len(distribution["-2"])
-		neg3Nodes = len(distribution["-3"])
-		pos1Nodes = len(distribution["+1"])
-		pos2Nodes = len(distribution["+2"])
-		pos3Nodes = len(distribution["+3"])
-		ambNodes = len(distribution["ambivalent"])
-		for k,v in distribution.items():
-			if len(v) > numVals:
-				median = (k,len(v))
-				numVals = len(v)
-			try:
-				valence = float(k)
-			except:
-				if k == "ambivalent":
-					valence = 0
-			avgValence = avgValence + valence * len(v)
-			totalNodes = totalNodes + len(v)
-		avgValence = avgValence / totalNodes
-		std = 0
-		numVals = 0
-		for k,v in distribution.items():
-			try:
-				valence = float(k)
-			except:
-				if k == "ambivalent":
-					valence = 0
-			for n in range(0,len(v)):
-				std = std + (valence - avgValence)**2
-				numVals = numVals + 1
-		std = std/numVals
-				
-		statistics = "Node Statistics: " + key.upper() + "\n\n" + "Average Valence: " + str(avgValence) +\
-			"\n" + "Median: " + str(median[0]) + " (" + str(median[1]) +")" +\
-			"\nSTD: " + str(std) + "\nNeutral: " + str(neutralNodes) +\
-			"\nWeak Positive: " + str(pos1Nodes) + "\nPositive: " + str(pos2Nodes) +\
-			"\nStrong Positive: " + str(pos3Nodes) + "\nWeak Negative: " +\
-			str(neg1Nodes) + "\nNegative: " + str(neg2Nodes) +\
-			"\nStrong Negative:" + str(neg3Nodes) + "\nAmbivalent: " + str(ambNodes)
-		return(statistics)
+#	def calculateNodeStatistics(self, key):
+##		distribution = self.valenceDistributions[key]
+#		distribution = {}
+#		# '1: [], '2': []...
+#		median = ()
+#		numVals = 0
+#		totalNodes = 0
+#		avgValence = 0
+#		neutralNodes = len(distribution["0"])
+#		neg1Nodes = len(distribution["-1"])
+#		neg2Nodes = len(distribution["-2"])
+#		neg3Nodes = len(distribution["-3"])
+#		pos1Nodes = len(distribution["+1"])
+#		pos2Nodes = len(distribution["+2"])
+#		pos3Nodes = len(distribution["+3"])
+#		ambNodes = len(distribution["ambivalent"])
+#		for k,v in distribution.items():
+#			if len(v) > numVals:
+#				median = (k,len(v))
+#				numVals = len(v)
+#			try:
+#				valence = float(k)
+#			except:
+#				if k == "ambivalent":
+#					valence = 0
+#			avgValence = avgValence + valence * len(v)
+#			totalNodes = totalNodes + len(v)
+#		avgValence = avgValence / totalNodes
+#		std = 0
+#		numVals = 0
+#		for k,v in distribution.items():
+#			try:
+#				valence = float(k)
+#			except:
+#				if k == "ambivalent":
+#					valence = 0
+#			for n in range(0,len(v)):
+#				std = std + (valence - avgValence)**2
+#				numVals = numVals + 1
+#		std = std/numVals
+#
+#		statistics = "Node Statistics: " + key.upper() + "\n\n" + "Average Valence: " + str(avgValence) +\
+#			"\n" + "Median: " + str(median[0]) + " (" + str(median[1]) +")" +\
+#			"\nSTD: " + str(std) + "\nNeutral: " + str(neutralNodes) +\
+#			"\nWeak Positive: " + str(pos1Nodes) + "\nPositive: " + str(pos2Nodes) +\
+#			"\nStrong Positive: " + str(pos3Nodes) + "\nWeak Negative: " +\
+#			str(neg1Nodes) + "\nNegative: " + str(neg2Nodes) +\
+#			"\nStrong Negative:" + str(neg3Nodes) + "\nAmbivalent: " + str(ambNodes)
+#		return(statistics)
 
-	def openInfoBox(self, text):
-		self.infobox.config(text=text)
-		self.sidebar.grid(row=2, column=3, sticky='e')
-		self.infobox.grid(row=2, column=3, padx=0)
-		self.sidebar.lift()
-		return
-	
-	def closeInfoBox(self):
-		self.sidebar.grid_forget()
-		self.infobox.grid_forget()
+#	def openInfoBox(self, text):
+#		self.infobox.config(text=text)
+#		self.sidebar.grid(row=2, column=3, sticky='e')
+#		self.infobox.grid(row=2, column=3, padx=0)
+#		self.sidebar.lift()
+#		return
+#
+#	def closeInfoBox(self):
+#		self.sidebar.grid_forget()
+#		self.infobox.grid_forget()

@@ -39,18 +39,22 @@ class Node:
 
 		# colour scheme
 		self.cs = parentSheet.cs
-		# border attributes according to valence
-		self.border = parentSheet.border
-
 		self.textColour = self.cs.darkText
-		self.valence = 0
-
-		# 0: rectangle, 1: circle, 2: polygon
-		self.shape = 0
 
 		# False if text can be edited, true if read-only
 		self.textDisabled = True
 		self.readOnly = True
+
+
+		# Valence and respective node shape
+		self.valence = 0
+		# border attributes according to valence
+		self.border = parentSheet.border
+		# 0: rectangle, 1: circle, 2: polygon
+		self.shape = 0
+
+		# Adjacent nodes sorted by pre/post
+		self.neighbors = {'pre': [], 'post': []}
 
 		# Indicates if node was deleted, added, or changed valence
 		self.diffTag = diffTag
@@ -64,24 +68,24 @@ class Node:
 		# default border thickness
 		self.thickness = 2
 
+		# location on the screen
 		self.coords=(coords[0], coords[1])
-
 		self.loc=(1.0*coords[0]/self.root.winfo_width(), 1.0*coords[1]/self.root.winfo_height())
 
+		# Node text & optional comment text
 		self.text = ""
 		self.commentText = comment
 
-		# True if node was removed by click
+		# True if node was removed by click (not drawn on the screen but not removed from nodes list).
 		self.removed = False
 
-		# Node is read from file
 		if data != {}:
 			self.text = data['text']
-			self.r = self.std_r
+
 			try:
 				self.valence = int(data['valence'])
 			except:
-				tkMessageBox.showwarning("Warning","Could not find \"valence\ key in map file %s. Using default."
+				tkMessageBox.showwarning("Warning","Could not find \"valence\" key in map file %s. Using default."
 										 %self.parentSheet.fileName)
 
 			self.parseValence(fromFile=True)
@@ -217,26 +221,26 @@ class Node:
 				if int(diffTag) == 0:
 					thickness = 2
 					self.preIndex = self.canvas.create_rectangle(prePosRect_coords,
-												fill=self.cs.toHex(self.fcolour_pre),
-												outline=self.cs.toHex(self.fcolour), activeoutline=self.cs.toHex(self.fcolour),
-												width=thickness, activewidth=thickness,
-												tags="preRectangle")
+										fill=self.cs.toHex(self.fcolour_pre),
+										outline=self.cs.toHex(self.fcolour), activeoutline=self.cs.toHex(self.fcolour),
+										width=thickness, activewidth=thickness,
+										tags="preRectangle")
 				elif int(diffTag) < 0:
 					thickness = int(diffTag) * (-2)
 					if int(diffTag) == -99:
 						thickness = 2
 						self.preIndex = self.canvas.create_oval(prePosCircle_coords,
-																fill=self.cs.toHex(self.fcolour_pre),
-																outline=self.cs.toHex(self.fcolour),
-																activeoutline=self.cs.toHex(self.fcolour),
-																width=thickness, activewidth=thickness,
-																tags="circle")
+										fill=self.cs.toHex(self.fcolour_pre),
+										outline=self.cs.toHex(self.fcolour),
+										activeoutline=self.cs.toHex(self.fcolour),
+										width=thickness, activewidth=thickness,
+										tags="circle")
 					self.prePolygonIndex = self.canvas.create_polygon(*flatten(hexVertices_small), \
-																	fill=self.cs.toHex(self.fcolour_pre),
-																	outline=self.cs.toHex(self.fcolour),
-																	activeoutline=self.cs.toHex(self.fcolour),
-																	width=thickness, activewidth=thickness,
-																	tags="hexagon")
+									fill=self.cs.toHex(self.fcolour_pre),
+									outline=self.cs.toHex(self.fcolour),
+									activeoutline=self.cs.toHex(self.fcolour),
+									width=thickness, activewidth=thickness,
+									tags="hexagon")
 				elif int(diffTag) > 0:
 					thickness = int(diffTag)*2
 					self.preIndex = self.canvas.create_oval(prePosCircle_coords,
@@ -357,6 +361,13 @@ class Node:
 			self.canvas.tag_bind(self.polygonIndex, '<B1-Motion>', self.onLeftDrag)
 
 		self.tk_text.bind('<Key>', self.resizeText)
+
+	def addNeighbor(self, i1="", i2=""):
+		if i1 != "":
+			self.neighbors['pre'].append(i1)
+		if i2 != "":
+			self.neighbors['post'].append(i1)
+		return
 
 	def selectToggle(self, event=[]):
 		# Deleted nodes are read-only
