@@ -272,7 +272,6 @@ class Sheet:
 			if version == 1:
 				index = float(row[7])
 			text = row[1]
-			neighbors = []
 			nodesData2.update({text : (index, valence)})
 
 		'''
@@ -284,7 +283,7 @@ class Sheet:
 		for (t1, (i1, v1)) in nodesData1.items():
 			# Node both in pre and post CAM
 			if t1 in nodesData2:
-				diffVal = v1
+				diffVal = nodesData2[t1][1]
 				diffTag = str(v1)
 				# Draw deleted nodes in middle third of the window
 				rand_y = randint(int((pixelY-150)/3), int((pixelY-150)*2/3))
@@ -451,6 +450,8 @@ class Sheet:
 		preNodes['amb'] = 0
 		# Average valence
 		preNodes['avgValence'] = 0
+		# Standard deviation
+		preNodes['SDValence'] = 0
 
 		# Same for post-CAM
 		postNodes['total'] = 0
@@ -459,6 +460,7 @@ class Sheet:
 		postNodes['neutral'] = 0
 		postNodes['amb'] = 0
 		postNodes['avgValence'] = 0
+		postNodes['SDValence'] = 0
 
 		# TODO: Create link dictionaries
 		# Dictionary keys: 'total', 'pos', 'neg'
@@ -466,9 +468,19 @@ class Sheet:
 		postLinks = {}
 
 		# Calculate statistical parameters & fill dictionaries
-		for (t, (i,v)) in nodesData1.items():
+		for (_, (_,v)) in nodesData1.items():
 			preNodes['total'] = preNodes['total'] + 1
-			preNodes['avgValence'] += v
+			# For calculation of mean: Use 0 as valence for ambivalent nodes (instead of -99)
+			if v == -99:
+				v0 = 0
+			else:
+				v0 = v
+			preNodes['avgValence'] += v0
+
+		preNodes['avgValence'] = preNodes['avgValence'] / preNodes['total']
+
+		squaredDiff = 0
+		for (_, (_, v)) in nodesData1.items():
 			if int(v) > 0:
 				preNodes['pos'] = preNodes['pos'] + 1
 			elif int(v) < 0 and int(v) > -99:
@@ -477,12 +489,35 @@ class Sheet:
 				preNodes['neutral'] = preNodes['neutral'] + 1
 			elif int(v) == -99:
 				preNodes['amb'] = preNodes['amb'] + 1
-		preNodes['avgValence'] = preNodes['avgValence']/preNodes['total']
 
-		# Same for post-CAM
-		for (i, (t, v)) in nodesData2.items():
+			# For calculation of SD: Use 0 as valence for ambivalent nodes (instead of -99)
+			if int(v) == -99:
+				v0 = 0
+			else:
+				v0 = int(v)
+			squaredDiff += (v0 - preNodes['avgValence']) ** 2
+
+		preNodes['SDValence'] = math.sqrt(squaredDiff / (preNodes['total'] - 1))
+
+		'''
+		Same for post-CAM
+		'''
+		for (t, (_, v)) in nodesData2.items():
+			print(v)
+			print(t)
 			postNodes['total'] = postNodes['total'] + 1
-			postNodes['avgValence'] += v
+			if v == -99:
+				v0 = 0
+			else:
+				v0 = v
+			print(v0)
+			postNodes['avgValence'] += v0
+
+		postNodes['avgValence'] = postNodes['avgValence'] / postNodes['total']
+
+		squaredDiff = 0
+
+		for (_, (_, v)) in nodesData2.items():
 			if int(v) > 0:
 				postNodes['pos'] = postNodes['pos'] + 1
 			elif int(v) < 0 and int(v) > -99:
@@ -491,18 +526,24 @@ class Sheet:
 				postNodes['neutral'] = postNodes['neutral'] + 1
 			elif int(v) == -99:
 				postNodes['amb'] = postNodes['amb'] + 1
-		postNodes['avgValence'] = preNodes['avgValence']/preNodes['total']
+
+			if int(v) == -99:
+				v0 = 0
+			else:
+				v0 = int(v)
+			squaredDiff += (v0 - postNodes['avgValence']) ** 2
+
+		postNodes['SDValence'] = math.sqrt(squaredDiff / (postNodes['total'] - 1))
 
 		self.statisticsStr = "### PRE-CAM: NODES ###"
-		for (k,v) in preNodes.items():
-			self.statisticsStr += "\n%s: %d" %(k, v)
+		for (k, v) in preNodes.items():
+			self.statisticsStr += "\n%s: %.4f" %(k, v)
 
 		self.statisticsStr += "\n### POST-CAM-NODES ###"
 		for (k, v) in postNodes.items():
-			self.statisticsStr += "\n%s: %d" % (k, v)
+			self.statisticsStr += "\n%s: %.4f" % (k, v)
 
 		print(self.statisticsStr)
-
 
 #		posDiffNum = 0
 #		negDiff = 0
