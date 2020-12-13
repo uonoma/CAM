@@ -82,6 +82,10 @@ class Sheet:
 		# Index of currently selected node. -99 per default (no selected node)
 		self.selectedNode = -99
 
+		# Adjacent nodes dictionaries
+		self.neighborsPre = {}
+		self.neighborsPost = {}
+
 		# Side bar with numeric data/aggregated information
 		self.sidebar = Frame(root, width=50, bg='white', height=200,
 			borderwidth=2, highlightthickness=1, highlightbackground="black")
@@ -361,6 +365,16 @@ class Sheet:
 			self.getNodeByText(startingNodeText).addNeighbor(i1=endNodeText)
 			self.getNodeByText(endNodeText).addNeighbor(i1=startingNodeText)
 
+			if self.neighborsPre.get(startingNodeText) is None:
+				self.neighborsPre[startingNodeText] = [endNodeText]
+			else:
+				self.neighborsPre[startingNodeText].append(endNodeText)
+
+			if self.neighborsPre.get(endNodeText) is None:
+				self.neighborsPre[endNodeText] = [startingNodeText]
+			else:
+				self.neighborsPre[endNodeText].append(startingNodeText)
+
 		'''
 		Read links from links.csv (post-CAM)
 		'''
@@ -410,6 +424,16 @@ class Sheet:
 			self.getNodeByText(startingNodeText).addNeighbor(i2=endNodeText)
 			self.getNodeByText(endNodeText).addNeighbor(i2=startingNodeText)
 
+			if self.neighborsPost.get(startingNodeText) is None:
+				self.neighborsPost[startingNodeText] = [endNodeText]
+			else:
+				self.neighborsPost[startingNodeText].append(endNodeText)
+
+			if self.neighborsPost.get(endNodeText) is None:
+				self.neighborsPost[endNodeText] = [startingNodeText]
+			else:
+				self.neighborsPost[endNodeText].append(startingNodeText)
+			print(self.neighborsPost)
 		'''
 		Draw diff-CAM links
 		'''
@@ -448,10 +472,13 @@ class Sheet:
 		preNodes['neg'] = 0
 		preNodes['neutral'] = 0
 		preNodes['amb'] = 0
-		# Average valence
+		# Mean valence
 		preNodes['avgValence'] = 0
 		# Standard deviation
 		preNodes['SDValence'] = 0
+
+		# Mean by degree
+		preMeanByDegree = []
 
 		# Same for post-CAM
 		postNodes['total'] = 0
@@ -499,12 +526,30 @@ class Sheet:
 
 		preNodes['SDValence'] = math.sqrt(squaredDiff / (preNodes['total'] - 1))
 
+		valsByDegree = {}
+		meansByDegreePre = {}
+
+		for (t, (_, v)) in nodesData1.items():
+			try:
+				neighbors = self.neighborsPre[t]
+				degree = len(neighbors)
+			except:
+				degree = 0
+			if valsByDegree.get(degree) is None:
+				valsByDegree[degree] = [v]
+			else:
+				valsByDegree[degree].append(v)
+
+		for (d, vs) in valsByDegree.items():
+			vs1 = [0 if x == -99 else x for x in vs]
+			meanVal = sum(vs1)/len(vs1)
+			meansByDegreePre[d] = meanVal
+
+
 		'''
 		Same for post-CAM
 		'''
 		for (t, (_, v)) in nodesData2.items():
-			print(v)
-			print(t)
 			postNodes['total'] = postNodes['total'] + 1
 			if v == -99:
 				v0 = 0
@@ -535,15 +580,41 @@ class Sheet:
 
 		postNodes['SDValence'] = math.sqrt(squaredDiff / (postNodes['total'] - 1))
 
+		valsByDegree = {}
+		meansByDegreePost = {}
+		for (t, (_, v)) in nodesData2.items():
+			try:
+				neighbors = self.neighborsPost[t]
+				degree = len(neighbors)
+			except:
+				degree = 0
+			if valsByDegree.get(degree) is None:
+				valsByDegree[degree] = [v]
+			else:
+				valsByDegree[degree].append(v)
+
+		for (d, vs) in valsByDegree.items():
+			vs1 = [0 if x == -99 else x for x in vs]
+			meanVal = sum(vs1)/len(vs1)
+			meansByDegreePost[d] = meanVal
+
+		'''
+		Concat statistics
+		'''
 		self.statisticsStr = "### PRE-CAM: NODES ###"
 		for (k, v) in preNodes.items():
 			self.statisticsStr += "\n%s: %.4f" %(k, v)
+		for (d, m) in meansByDegreePre.items():
+			self.statisticsStr += "\nMean - Degree %d: %.4f" %(d, m)
 
 		self.statisticsStr += "\n### POST-CAM-NODES ###"
 		for (k, v) in postNodes.items():
 			self.statisticsStr += "\n%s: %.4f" % (k, v)
+		for (d, m) in meansByDegreePost.items():
+			self.statisticsStr += "\nMean - Degree %d: %.4f" %(d, m)
 
 		print(self.statisticsStr)
+		self.openInfoBox(self.statisticsStr)
 
 #		posDiffNum = 0
 #		negDiff = 0
@@ -598,7 +669,6 @@ class Sheet:
 #		for i in range(0, len(self.diffCamDataLabels)):
 #			diffStr = diffStr + "\n" + str(self.diffCamDataLabels[i]) +\
 #			str(self.diffCamData[i] + "\n")
-#		self.openInfoBox(diffStr)
 
 	def lookupNodeIndex(self, text):
 		for n in self.nodes:
@@ -961,13 +1031,13 @@ class Sheet:
 #			"\nStrong Negative:" + str(neg3Nodes) + "\nAmbivalent: " + str(ambNodes)
 #		return(statistics)
 
-#	def openInfoBox(self, text):
-#		self.infobox.config(text=text)
-#		self.sidebar.grid(row=2, column=3, sticky='e')
-#		self.infobox.grid(row=2, column=3, padx=0)
-#		self.sidebar.lift()
-#		return
-#
-#	def closeInfoBox(self):
-#		self.sidebar.grid_forget()
-#		self.infobox.grid_forget()
+	def openInfoBox(self, text):
+		self.infobox.config(text=text)
+		self.sidebar.grid(row=2, column=3, sticky='e')
+		self.infobox.grid(row=2, column=3, padx=0)
+		self.sidebar.lift()
+		return
+
+	def closeInfoBox(self):
+		self.sidebar.grid_forget()
+		self.infobox.grid_forget()
