@@ -14,8 +14,6 @@ from Colours import *
 from Border import *
 from tkinter import filedialog
 from random import choice, randint
-from PIL import ImageTk, Image, ImageGrab, ImageDraw
-
 
 class Sheet:
 
@@ -433,7 +431,6 @@ class Sheet:
 				self.neighborsPost[endNodeText] = [startingNodeText]
 			else:
 				self.neighborsPost[endNodeText].append(startingNodeText)
-			print(self.neighborsPost)
 		'''
 		Draw diff-CAM links
 		'''
@@ -492,7 +489,14 @@ class Sheet:
 		# TODO: Create link dictionaries
 		# Dictionary keys: 'total', 'pos', 'neg'
 		preLinks = {}
+		preLinks['total'] = 0
+		preLinks['pos'] = 0
+		preLinks['neg'] = 0
+
 		postLinks = {}
+		postLinks['total'] = 0
+		postLinks['pos'] = 0
+		postLinks['neg'] = 0
 
 		# Calculate statistical parameters & fill dictionaries
 		for (_, (_,v)) in nodesData1.items():
@@ -545,6 +549,16 @@ class Sheet:
 			meanVal = sum(vs1)/len(vs1)
 			meansByDegreePre[d] = meanVal
 
+		# Link no in pre-CAM
+		for (_, s) in linksData1.items():
+			preLinks['total'] = preLinks['total'] + 1
+			if s > 0:
+				preLinks['pos'] = preLinks['pos'] + 1
+			else:
+				preLinks['neg'] = preLinks['neg'] + 1
+
+		# Calculate density
+		preDensity = preLinks['total']/binomial(preNodes['total'], 2)
 
 		'''
 		Same for post-CAM
@@ -555,7 +569,6 @@ class Sheet:
 				v0 = 0
 			else:
 				v0 = v
-			print(v0)
 			postNodes['avgValence'] += v0
 
 		postNodes['avgValence'] = postNodes['avgValence'] / postNodes['total']
@@ -598,6 +611,17 @@ class Sheet:
 			meanVal = sum(vs1)/len(vs1)
 			meansByDegreePost[d] = meanVal
 
+		# Link no in post-CAM
+		for (_, s) in linksData2.items():
+			postLinks['total'] = postLinks['total'] + 1
+			if s > 0:
+				postLinks['pos'] = postLinks['pos'] + 1
+			else:
+				postLinks['neg'] = postLinks['neg'] + 1
+
+		# Calculate density
+		postDensity = postLinks['total']/binomial(postNodes['total'], 2)
+
 		'''
 		Concat statistics
 		'''
@@ -606,69 +630,24 @@ class Sheet:
 			self.statisticsStr += "\n%s: %.4f" %(k, v)
 		for (d, m) in meansByDegreePre.items():
 			self.statisticsStr += "\nMean - Degree %d: %.4f" %(d, m)
+		self.statisticsStr += "\n### PRE-CAM LINKS: ###"
+		for (k, v) in preLinks.items():
+			self.statisticsStr += "\n%s: %.4f" %(k, v)
+		self.statisticsStr += "\nDensity: %.4f" %preDensity
 
+		self.statisticsStr += "\n----------------------"
 		self.statisticsStr += "\n### POST-CAM-NODES ###"
 		for (k, v) in postNodes.items():
 			self.statisticsStr += "\n%s: %.4f" % (k, v)
 		for (d, m) in meansByDegreePost.items():
 			self.statisticsStr += "\nMean - Degree %d: %.4f" %(d, m)
+		self.statisticsStr += "\n### POST-CAM LINKS: ###"
+		for (k, v) in postLinks.items():
+			self.statisticsStr += "\n%s: %.4f" %(k, v)
+		self.statisticsStr += "\nDensity: %.4f" %postDensity
 
-		print(self.statisticsStr)
 		self.openInfoBox(self.statisticsStr)
 
-#		posDiffNum = 0
-#		negDiff = 0
-#		negDiffNum = 0
-#		neutralDiff = 0
-#		neutralDiffNum = 0
-#		ambDiff = 0
-#		ambDiffNum = 0
-#		onlyinPre = {}
-#		onlyinPost = {}
-
-#		for k1, v1 in nodesData1.items():
-#			if k1 in nodesData2:
-#				if v1 > 0:
-#					posDiff = posDiff + (nodesData2[k1] - v1)
-#					posDiffNum = posDiffNum + 1
-#				elif v1 < 0 and v1 > -99:
-#					negDiff = negDiff + (nodesData2[k1] - v1)
-#					negDiffNum = negDiffNum + 1
-#				elif v1 == 0:
-#					neutralDiff = neutralDiff + nodesData2[k1]
-#					neutralDiffNum = neutralDiffNum + 1
-#				elif v1 == -99:
-#					if not nodesData2[k1] == -99:
-#						ambDiff = ambDiff + nodesData2[k1]
-#					ambDiffNum = ambDiffNum + 1
-#			else:
-#				onlyinPre.update({ k1 : v1} )
-#		for k2, v2 in nodesData2.items():
-#			if k2 not in nodesData1:
-#				onlyinPost.update({k2 : v2} )
-#		posDiffAvg = round(posDiff / max(posDiffNum,1), 4)
-#		negDiffAvg = round(negDiff / max(negDiffNum,1), 4)
-#		neutralDiffAvg = round(neutralDiff / max(neutralDiffNum,1), 4)
-#		ambDiffAvg = round(ambDiff / max(ambDiffNum, 1), 4)
-#		onlyinPreStr = ""
-#		onlyinPostStr = ""
-#		for (k1, v1) in onlyinPre.items():
-#			onlyinPreStr = onlyinPreStr + "\n" + str(k1) + ":" + str(v1)
-#		for (k2, v2) in onlyinPost.items():
-#			onlyinPostStr = onlyinPostStr + "\n" + str(k2) + ":" + str(v2)
-#
-#		self.diffCamDataLabels = ["Veränderung positiver Knoten (prä-post):\n",
-#			"Veränderung negativer Knoten (prä-post):\n",
-#			"Veränderung neutraler Knoten (prä-post):\n",
-#			"Veränderung ambivalenter Knoten (prä-post):\n",
-#			"Entfallene Knoten (nur in prä): ",
-#			"Hinzugefügte Knoten (nur in post): "]
-#		self.diffCamData = [str(posDiffAvg), str(negDiffAvg),
-#			str(neutralDiffAvg), str(ambDiffAvg),onlyinPreStr, onlyinPostStr]
-#		diffStr = ""
-#		for i in range(0, len(self.diffCamDataLabels)):
-#			diffStr = diffStr + "\n" + str(self.diffCamDataLabels[i]) +\
-#			str(self.diffCamData[i] + "\n")
 
 	def lookupNodeIndex(self, text):
 		for n in self.nodes:

@@ -26,3 +26,6 @@ def getDir(p1, p2):
 	v = (p2[0]-p1[0], p2[1]-p1[1])
 
 	return v
+
+def binomial(n, k):
+	return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
