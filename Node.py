@@ -494,7 +494,6 @@ class Node:
 			self.canvas.delete(self.polygonIndex)
 
 		self.tk_text.destroy()
-		self.text = ""
 
 		if self.hasComment:
 			self.comment.deleteComment(event)
