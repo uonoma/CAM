@@ -160,7 +160,7 @@ class Node:
 				
 		self.thickness = border['thickness']
 		self.colour = border['colour']
-		self.bcolour, self.fcolour, self.fcolour_pre = self.parseColours(self.colour)
+		self.colour1, self.colour2, self.colour3 = self.parseColours(self.colour)
 		return
 
 	def reDraw(self, init=False):
@@ -200,8 +200,6 @@ class Node:
 		# "Small" coordinates for shapes other than polygons, for pre-CAM nodes that were deleted in post-CAM
 
 		if self.diffTag == "D":
-			self.bcolour=self.fcolour
-			self.fcolour=self.fcolour_pre
 			fontColour="dimgrey"
 			hexVertices = map(lambda i: \
 										(x + (self.r - 6) * math.cos(i * 2 * math.pi / 6),
@@ -213,7 +211,10 @@ class Node:
 				x0p, y0p, x1p, y1p = x - r * 0.9, y - r * 0.9, x + r * 0.9, y + r * 0.9
 
 		if init:
-			fill, outline = self.cs.toHex(self.fcolour), self.cs.toHex(self.bcolour)
+			self.fill, self.outline = self.cs.toHex(self.colour2), self.cs.toHex(self.colour1)
+			if self.diffTag == "D":
+				self.fill = self.cs.toHex(self.colour3)
+				self.outline = self.cs.toHex(self.colour2)
 
 			# Draw small pre-nodes (for nodes present in pre- and post-CAM.)
 			try:
@@ -221,8 +222,8 @@ class Node:
 				if int(diffTag) == 0:
 					thickness = 2
 					self.preIndex = self.canvas.create_rectangle(prePosRect_coords,
-										fill=self.cs.toHex(self.fcolour_pre),
-										outline=self.cs.toHex(self.fcolour), activeoutline=self.cs.toHex(self.fcolour),
+										fill=self.cs.toHex(self.colour3),
+										outline=self.cs.toHex(self.colour2), activeoutline=self.cs.toHex(self.colour2),
 										width=thickness, activewidth=thickness,
 										tags="preRectangle")
 				elif int(diffTag) < 0:
@@ -230,25 +231,25 @@ class Node:
 					if int(diffTag) == -99:
 						thickness = 2
 						self.preIndex = self.canvas.create_oval(prePosCircle_coords,
-										fill=self.cs.toHex(self.fcolour_pre),
-										outline=self.cs.toHex(self.fcolour),
-										activeoutline=self.cs.toHex(self.fcolour),
+										fill=self.cs.toHex(self.colour3),
+										outline=self.cs.toHex(self.colour2),
+										activeoutline=self.cs.toHex(self.colour2),
 										width=thickness, activewidth=thickness,
 										tags="circle")
 					self.prePolygonIndex = self.canvas.create_polygon(*flatten(hexVertices_small), \
-									fill=self.cs.toHex(self.fcolour_pre),
-									outline=self.cs.toHex(self.fcolour),
-									activeoutline=self.cs.toHex(self.fcolour),
+									fill=self.cs.toHex(self.colour3),
+									outline=self.cs.toHex(self.colour2),
+									activeoutline=self.cs.toHex(self.colour2),
 									width=thickness, activewidth=thickness,
 									tags="hexagon")
 				elif int(diffTag) > 0:
 					thickness = int(diffTag)*2
 					self.preIndex = self.canvas.create_oval(prePosCircle_coords,
-															fill=self.cs.toHex(self.fcolour_pre),
-															outline=self.cs.toHex(self.fcolour),
-															activeoutline=self.cs.toHex(self.fcolour),
-															width=thickness, activewidth=thickness,
-															tags="circle")
+									fill=self.cs.toHex(self.colour3),
+									outline=self.cs.toHex(self.colour2),
+									activeoutline=self.cs.toHex(self.colour2),
+									width=thickness, activewidth=thickness,
+									tags="circle")
 
 			# Pass if diffTag is not an int value (node not present in pre-CAM)
 			except:
@@ -256,29 +257,29 @@ class Node:
 
 			# Draw main nodes
 			if self.shape == 0:
-				self.shapeIndex = self.canvas.create_rectangle(x0p, y0p, x1p, y1p, fill=fill,
-						outline=outline, activeoutline=outline,
+				self.shapeIndex = self.canvas.create_rectangle(x0p, y0p, x1p, y1p, fill=self.fill,
+						outline=self.outline, activeoutline=self.outline,
 						width=self.thickness, activewidth=self.thickness,
 						tags="rectangle")
 				self.polygonIndex = -1
 			elif self.shape == 1:
-				self.shapeIndex = self.canvas.create_oval(x0p, y0p, x1p, y1p, fill=fill,
-						outline=outline, activeoutline=outline,
+				self.shapeIndex = self.canvas.create_oval(x0p, y0p, x1p, y1p, fill=self.fill,
+						outline=self.outline, activeoutline=self.outline,
 						width=self.thickness, activewidth=self.thickness,
 						tags="circle")
 				self.polygonIndex = -1
 			elif self.shape == 2:
 				self.shapeIndex = self.canvas.create_polygon(*flatten(hexVertices),\
-					fill=fill, outline=outline, activeoutline=outline,\
+					fill=self.fill, outline=self.outline, activeoutline=self.outline,\
 					width=self.thickness, activewidth=self.thickness,tags="hexagon")
 				self.polygonIndex = -1
 			elif self.shape == 3:
-				self.shapeIndex = self.canvas.create_oval(x0p, y0p, x1p, y1p, fill=fill,
-						outline=outline, activeoutline=outline,
+				self.shapeIndex = self.canvas.create_oval(x0p, y0p, x1p, y1p, fill=self.fill,
+						outline=self.outline, activeoutline=self.outline,
 						width=self.thickness, activewidth=self.thickness,
 						tags="circle")
 				self.polygonIndex = self.canvas.create_polygon(*flatten(hexVertices),\
-					fill=fill, outline=outline, activeoutline=outline,\
+					fill=self.fill, outline=self.outline, activeoutline=self.outline,\
 					width=self.thickness, activewidth=self.thickness,tags="hexagon")
 
 		# Re-draw shapes with updated coordinates
@@ -316,7 +317,7 @@ class Node:
 			self.tk_text = Text(self.root, bd=0, height=h,
 				width=w, highlightthickness=0, wrap="word",
 				font=(mainFont, int(self.fontSize), "normal"),
-				bg=fill, fg=fontColour)
+				bg=self.fill, fg=fontColour)
 
 			if len(self.text) > 12:
 				# Split long text in two lines to fit inside shape
@@ -370,20 +371,15 @@ class Node:
 		return
 
 	def selectToggle(self, event=[]):
-		# Deleted nodes are read-only
-		if self.diffTag == "D":
-			return
-
 		if self.parentSheet.selectedNode != self.index:
 			self.parentSheet.selectedNode = self.index
 			# unselect all nodes
 			for n in self.parentSheet.nodes:
-				if n.diffTag != "D":
-					self.canvas.itemconfig(n.shapeIndex, outline=self.cs.toHex(n.bcolour),
-									   activeoutline=self.cs.toHex(n.bcolour))
-					if n.polygonIndex > -1:
-						self.canvas.itemconfig(n.polygonIndex, outline= self.cs.toHex(n.bcolour),
-											   activeoutline=self.cs.toHex(n.bcolour))
+				self.canvas.itemconfig(n.shapeIndex, outline=n.outline,
+								   activeoutline=n.outline)
+				if n.polygonIndex > -1:
+					self.canvas.itemconfig(n.polygonIndex, outline= n.outline,
+										   activeoutline=n.outline)
 			# use highlight color for selected node
 			self.canvas.itemconfig(self.shapeIndex, outline=self.cs.toHex(self.cs.highlight2),
 								activeoutline=self.cs.toHex(self.cs.highlight2))
@@ -392,11 +388,11 @@ class Node:
 									   activeoutline=self.cs.toHex(self.cs.highlight2))
 		else:
 			self.parentSheet.selectedNode = -99
-			self.canvas.itemconfig(self.shapeIndex, outline=self.cs.toHex(self.bcolour),
-								   activeoutline = self.cs.toHex(self.bcolour))
+			self.canvas.itemconfig(self.shapeIndex, outline=self.outline,
+								   activeoutline = self.outline)
 			if self.polygonIndex > -1:
-				self.canvas.itemconfig(self.polygonIndex, outline=self.cs.toHex(self.bcolour),
-									   activeoutline = self.cs.toHex(self.bcolour))
+				self.canvas.itemconfig(self.polygonIndex, outline=self.outline,
+									   activeoutline = self.outline)
 
 	def disableText(self, event=[]):
 		if not self.textDisabled:
