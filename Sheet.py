@@ -711,26 +711,33 @@ class Sheet:
 		csvWriterNodes = csv.writer(csvFileNodes, delimiter=delim, quoting=csv.QUOTE_NONE,
 			escapechar='\\')
 		csvWriterNodes.writerow(CSVFIELDS_NODES_V4)
+		#		CSVFIELDS_NODES_V4 = ['id', 'title', 'x_pos', 'y_pos', 'width', 'height', 'shape', 'creator', 'num',
+		#							  'comment', 'timestamp', 'modifiable', 'CAM', 'valence_pre', 'valence_post',
+		#							  'deleted_by_user']
+
 		for n in self.nodes:
-	#		CSVFIELDS_NODES_V4 = ['id', 'title', 'x_pos', 'y_pos', 'width', 'height', 'shape', 'creator', 'num',
-	#							  'comment', 'timestamp', 'modifiable', 'CAM', 'removed']
-			if n.valence == 0:
-				val = "neutral"
-			elif n.valence == -1:
-				val = "negative weak"
-			elif n.valence == -2:
-				val = "negative"
-			elif n.valence == -3:
-				val = "negative strong"
-			elif n.valence == 1:
-				val = "positive weak"
-			elif n.valence == 2:
-				val = "positive"
-			elif n.valence == 3:
-				val = "positive strong"
-			elif n.valence == -99:
-				val = "ambivalent"
-			r = [n.index, n.text, n.coords[0], n.coords[1], 2*n.r, 2*n.r, val, 0, n.index, "", "", 1, fnBase, n.removed]
+			val = self.parseValenceTo(n.valence)
+
+			# Add fields for pre-/post-CAM valence
+			if n.diffTag == "A":
+				val_post = val
+				val_pre = ""
+			elif n.diffTag == "D":
+				val_pre = val
+				val_post = ""
+			else:
+				try:
+					val_pre_int = int(n.diffTag)
+					val_pre = self.parseValenceTo(val_pre_int)
+					val_post = val
+				except:
+					val_pre = ""
+					val_post = ""
+					print(val)
+					print(n.diffTag)
+
+			r = [n.index, n.text, n.coords[0], n.coords[1], 2*n.r, 2*n.r, val, 0, n.index, "", "", 1, fnBase,
+				 val_pre, val_post, n.removed]
 			csvWriterNodes.writerow(r)
 
 		linksFileName = fnBaseLong + "_links" + fnExt
@@ -764,7 +771,6 @@ class Sheet:
 			r = [i, l.nA.index, l.nB.index, strength, "", i, dir, "", fnBase]
 			csvWriterLinks.writerow(r)
 			i = i + 1
-
 
 
 #		if self.diffCam:
@@ -1020,3 +1026,22 @@ class Sheet:
 	def closeInfoBox(self):
 		self.sidebar.grid_forget()
 		self.infobox.grid_forget()
+
+	def parseValenceTo(self, valence):
+		if valence == 0:
+			valStr = "neutral"
+		elif valence == -1:
+			valStr = "negative weak"
+		elif valence == -2:
+			valStr = "negative"
+		elif valence == -3:
+			valStr = "negative strong"
+		elif valence == 1:
+			valStr = "positive weak"
+		elif valence == 2:
+			valStr = "positive"
+		elif valence == 3:
+			valStr = "positive strong"
+		elif valence == -99:
+			valStr = "ambivalent"
+		return valStr
