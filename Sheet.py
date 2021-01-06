@@ -80,6 +80,9 @@ class Sheet:
 		# Index of currently selected node. -99 per default (no selected node)
 		self.selectedNode = -99
 
+		# Tuple of indices of currently selected link. () per default (no link selected)
+		self.selectedLink = ()
+
 		# Adjacent nodes dictionaries
 		self.neighborsPre = {}
 		self.neighborsPost = {}
@@ -141,11 +144,13 @@ class Sheet:
 				l.updateLine()
 
 	def deleteSelected(self, event=[]):
-		if self.selectedNode == -99:
-			return
-		else:
+		if not self.selectedNode == -99:
 			n = self.getNodeByIndex(self.selectedNode)
 			n.removeByClick()
+		if not self.selectedLink == ():
+			print("HERE")
+			l = self.getLinkByIndex(self.selectedLink[0], self.selectedLink[1])
+			l.remove()
 
 	def computeDiffCam(self, cam1, cam2):
 		archive1 = zipfile.ZipFile(cam1, 'r')
@@ -733,8 +738,6 @@ class Sheet:
 				except:
 					val_pre = ""
 					val_post = ""
-					print(val)
-					print(n.diffTag)
 
 			r = [n.index, n.text, n.coords[0], n.coords[1], 2*n.r, 2*n.r, val, 0, n.index, "", "", 1, fnBase,
 				 val_pre, val_post, n.removed]
@@ -922,7 +925,7 @@ class Sheet:
 			if n.text == text:
 				return n
 
-	def getLink(self, indexA, indexB):
+	def getLinkByIndex(self, indexA, indexB):
 		nodeA = self.getNodeByIndex(indexA)
 		nodeB = self.getNodeByIndex(indexB)
 		for l in self.links:

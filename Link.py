@@ -35,8 +35,6 @@ class Link:
 
 		self.cs = self.parentSheet.cs
 
-		self.selected = False
-
 		# Start and end nodes
 		self.nA = nA
 		self.nB = nB
@@ -107,14 +105,25 @@ class Link:
 		self.lineIndex = -1
 		self.preLineIndex = -1
 
+		# Flag for links deleted from canvas by user
+		self.removed = False
+
 		if draw:
 			self.initDrawing()
+
+		self.setBinds()
+
+
+	def setBinds(self):
+		# Select on double-left click
+		self.canvas.tag_bind(self.lineIndex, '<Double-1>', self.selectToggle)
+		self.canvas.tag_bind(self.preLineIndex, '<Double-1>', self.selectToggle)
 
 	def initDrawing(self):
 		# Draw main line
 		self.lineIndex = self.add_to_layer(self.thickness,
 			self.canvas.create_line, (self.x0,self.y0,self.x1,self.y1),
-			fill=self.cs.toHex(self.colour), activefill = self.cs.toHex(self.cs.highlight2),
+			fill=self.cs.toHex(self.colour), activefill = self.cs.toHex(self.colour),
 			width=self.thickness, activewidth = self.activeWidth,
 			dash=self.dashed)
 
@@ -132,7 +141,7 @@ class Link:
 				self.canvas.create_line,
 				(self.x0+self.preLinkOffset, self.y0+self.preLinkOffset,
 				 self.x1+self.preLinkOffset, self.y1+self.preLinkOffset),
-				fill=self.cs.toHex(self.cs.lightGrey), activefill=self.cs.toHex(self.cs.highlight2),
+				fill=self.cs.toHex(self.cs.lightGrey), activefill=self.cs.toHex(self.colour),
 				width=self.preThickness, activewidth=self.preThickness,
 				dash=self.preDashed)
 
@@ -180,6 +189,31 @@ class Link:
 							   y1+self.preLinkOffset)
 			self.canvas.itemconfig(self.preLineIndex, width=self.thickness,
 								   dash=self.preDashed, fill=self.cs.toHex(self.cs.lightGrey))
+
+	def selectToggle(self):
+		if self.parentSheet.selectedLink == ():
+			for l in self.parentSheet.links:
+				l.unselect()
+			self.canvas.itemconfig(self.lineIndex, fill=self.cs.toHex(self.cs.highlight2),
+								   activefill = self.cs.toHex(self.cs.highlight2))
+			if self.preLineIndex > -1:
+				self.canvas.itemconfig(self.preLineIndex, fill=self.cs.toHex(self.cs.highlight2),
+									   activefill=self.cs.toHex(self.cs.highlight2))
+			self.parentSheet.selectedLink = (self.nA.index, self.nB.index)
+		else:
+			self.unselect()
+			self.parentSheet.selectedLink = ()
+
+	def unselect(self):
+		self.canvas.itemconfig(self.lineIndex, fill=self.cs.toHex(self.colour),
+							   activefill=self.cs.toHex(self.colour))
+		if self.preLineIndex > -1:
+			self.canvas.itemconfig(self.preLineIndex, fill=self.cs.toHex(self.colour),
+								   activefill=self.cs.toHex(self.colour))
+
+	def removeByClick(self):
+		self.removed = True
+		self.remove()
 
 	def remove(self, event=[]):
 		self.parentSheet.dragging = True
