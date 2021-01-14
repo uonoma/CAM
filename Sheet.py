@@ -746,7 +746,7 @@ class Sheet:
 		csvFileLinks = open(linksFileName, mode='w+', newline='')
 		csvWriterLinks = csv.writer(csvFileLinks, delimiter=delim, quoting=csv.QUOTE_NONE,
 									escapechar='\\')
-		csvWriterLinks.writerow(CSVFIELDS_LINKS_V2)
+		csvWriterLinks.writerow(CSVFIELDS_LINKS_V3)
 
 		i = 0
 		for l in self.links:
@@ -768,9 +768,24 @@ class Sheet:
 			elif l.directed == 0:
 				dir = "none"
 
-		#	CSVFIELDS_LINKS_V2 = ['id', 'starting_block', 'ending_block', 'line_style', 'creator', 'num', 'arrow_type',
-		#						  'timestamp', 'CAM']
-			r = [i, l.nA.index, l.nB.index, strength, "", i, dir, "", fnBase]
+			if l.diffTag == "A":
+				strength_post = strength
+				strength_pre = ""
+			elif l.diffTag == "D":
+				strength_pre = strength
+				strength_post = ""
+			else:
+				try:
+					strength_pre_int = int(n.diffTag)
+					strength_pre = self.parseStrengthTo(strength_pre_int)
+					strength_post = strength
+				except:
+					strength_pre = ""
+					strength_post = ""
+
+		#	CSVFIELDS_LINKS_V3 = ['id', 'starting_block', 'ending_block', 'line_style', 'creator', 'num', 'arrow_type',
+		#						  'timestamp', 'CAM', 'strength_pre', 'strength_post', 'deleted_by_user']
+			r = [i, l.nA.index, l.nB.index, strength, "", i, dir, "", fnBase, strength_pre, strength_post, l.removed]
 			csvWriterLinks.writerow(r)
 			i = i + 1
 
@@ -1046,3 +1061,18 @@ class Sheet:
 		elif valence == -99:
 			valStr = "ambivalent"
 		return valStr
+
+	def parseStrengthTo(self, strength):
+		if strength == -1:
+			strengthStr = "Dashed-Weak"
+		elif strength == -2:
+			strengthStr = "Dashed"
+		elif strength == -3:
+			strengthStr = "Dashed-Strong"
+		elif strength == 1:
+			strengthStr = "Solid-Weak"
+		elif strength == 2:
+			strengthStr = "Solid"
+		elif strength == 3:
+			strengthStr = "Solid-Strong"
+		return strengthStr
