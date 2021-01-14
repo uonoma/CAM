@@ -148,9 +148,8 @@ class Sheet:
 			n = self.getNodeByIndex(self.selectedNode)
 			n.removeByClick()
 		if not self.selectedLink == ():
-			print("HERE")
 			l = self.getLinkByIndex(self.selectedLink[0], self.selectedLink[1])
-			l.remove()
+			l.removeByClick()
 
 	def computeDiffCam(self, cam1, cam2):
 		archive1 = zipfile.ZipFile(cam1, 'r')
@@ -929,8 +928,7 @@ class Sheet:
 		nodeA = self.getNodeByIndex(indexA)
 		nodeB = self.getNodeByIndex(indexB)
 		for l in self.links:
-			if (nodeA == l.nA and nodeB == l.nB) or (nodeA == l.nB and
-			nodeB == l.nA):
+			if (nodeA == l.nA and nodeB == l.nB):
 				return l
 
 	def updateNodeEdges(self, node):

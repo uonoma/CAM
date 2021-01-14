@@ -190,13 +190,13 @@ class Link:
 			self.canvas.itemconfig(self.preLineIndex, width=self.thickness,
 								   dash=self.preDashed, fill=self.cs.toHex(self.cs.lightGrey))
 
-	def selectToggle(self):
+	def selectToggle(self, event=[]):
 		if self.parentSheet.selectedLink == ():
 			for l in self.parentSheet.links:
 				l.unselect()
 			self.canvas.itemconfig(self.lineIndex, fill=self.cs.toHex(self.cs.highlight2),
 								   activefill = self.cs.toHex(self.cs.highlight2))
-			if self.preLineIndex > -1:
+			if self.preLineIndex != -1:
 				self.canvas.itemconfig(self.preLineIndex, fill=self.cs.toHex(self.cs.highlight2),
 									   activefill=self.cs.toHex(self.cs.highlight2))
 			self.parentSheet.selectedLink = (self.nA.index, self.nB.index)
@@ -207,7 +207,7 @@ class Link:
 	def unselect(self):
 		self.canvas.itemconfig(self.lineIndex, fill=self.cs.toHex(self.colour),
 							   activefill=self.cs.toHex(self.colour))
-		if self.preLineIndex > -1:
+		if self.preLineIndex != -1:
 			self.canvas.itemconfig(self.preLineIndex, fill=self.cs.toHex(self.colour),
 								   activefill=self.cs.toHex(self.colour))
 
@@ -220,7 +220,7 @@ class Link:
 
 		self.canvas.delete(self.lineIndex)
 
-		if self.preLineIndex > -1:
+		if self.preLineIndex != -1:
 			self.canvas.delete(self.preLineIndex)
 
 		if self.hasComment:
