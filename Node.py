@@ -222,32 +222,38 @@ class Node:
 				if int(diffTag) == 0:
 					thickness = 2
 					self.preIndex = self.canvas.create_rectangle(prePosRect_coords,
-										fill=self.cs.toHex(self.colour3),
-										outline=self.cs.toHex(self.colour2), activeoutline=self.cs.toHex(self.colour2),
+										fill=self.cs.toHex(self.cs.pyellow),
+										outline=self.cs.toHex(self.cs.fyellow),
+										activeoutline=self.cs.toHex(self.cs.fyellow),
 										width=thickness, activewidth=thickness,
 										tags="preRectangle")
 				elif int(diffTag) < 0:
 					thickness = int(diffTag) * (-2)
 					if int(diffTag) == -99:
 						thickness = 2
+						pcolour = self.cs.ppurple
+						fcolour = self.cs.fpurple
 						self.preIndex = self.canvas.create_oval(prePosCircle_coords,
-										fill=self.cs.toHex(self.colour3),
-										outline=self.cs.toHex(self.colour2),
-										activeoutline=self.cs.toHex(self.colour2),
+										fill=self.cs.toHex(pcolour),
+										outline=self.cs.toHex(fcolour),
+										activeoutline=self.cs.toHex(fcolour),
 										width=thickness, activewidth=thickness,
 										tags="circle")
+					else:
+						pcolour = self.cs.pred
+						fcolour = self.cs.fred
 					self.prePolygonIndex = self.canvas.create_polygon(*flatten(hexVertices_small), \
-									fill=self.cs.toHex(self.colour3),
-									outline=self.cs.toHex(self.colour2),
-									activeoutline=self.cs.toHex(self.colour2),
+									fill=self.cs.toHex(pcolour),
+									outline=self.cs.toHex(fcolour),
+									activeoutline=self.cs.toHex(fcolour),
 									width=thickness, activewidth=thickness,
 									tags="hexagon")
 				elif int(diffTag) > 0:
 					thickness = int(diffTag)*2
 					self.preIndex = self.canvas.create_oval(prePosCircle_coords,
-									fill=self.cs.toHex(self.colour3),
-									outline=self.cs.toHex(self.colour2),
-									activeoutline=self.cs.toHex(self.colour2),
+									fill=self.cs.toHex(self.cs.pgreen),
+									outline=self.cs.toHex(self.cs.fgreen),
+									activeoutline=self.cs.toHex(self.cs.fgreen),
 									width=thickness, activewidth=thickness,
 									tags="circle")
 
@@ -598,4 +604,3 @@ def split2(string):
 
 def flatten(listoftuples):
 	return list(itertools.chain.from_iterable(listoftuples))
-
