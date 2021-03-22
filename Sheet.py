@@ -468,71 +468,71 @@ class Sheet:
 		postNodes = {}
 
 		# Number of nodes, total & sorted by valence
-		preNodes['total'] = 0
-		preNodes['pos'] = 0
-		preNodes['neg'] = 0
-		preNodes['neutral'] = 0
-		preNodes['amb'] = 0
+		preNodes['total number'] = 0
+		preNodes['positives number'] = 0
+		preNodes['negatives number'] = 0
+		preNodes['neutrals number'] = 0
+		preNodes['ambivalents number'] = 0
 		# Mean valence
-		preNodes['avgValence'] = 0
+		preNodes['AVG valence'] = 0
 		# Standard deviation
-		preNodes['SDValence'] = 0
+		preNodes['SD valence'] = 0
 
 		# Mean by degree
 		preMeanByDegree = []
 
 		# Same for post-CAM
-		postNodes['total'] = 0
-		postNodes['pos'] = 0
-		postNodes['neg'] = 0
-		postNodes['neutral'] = 0
-		postNodes['amb'] = 0
-		postNodes['avgValence'] = 0
-		postNodes['SDValence'] = 0
+		postNodes['total number'] = 0
+		postNodes['positives number'] = 0
+		postNodes['negatives number'] = 0
+		postNodes['neutrals number'] = 0
+		postNodes['ambivalents number'] = 0
+		postNodes['AVG valence'] = 0
+		postNodes['SD valence'] = 0
 
 		# TODO: Create link dictionaries
 		# Dictionary keys: 'total', 'pos', 'neg'
 		preLinks = {}
-		preLinks['total'] = 0
-		preLinks['pos'] = 0
-		preLinks['neg'] = 0
+		preLinks['total number'] = 0
+		preLinks['positives number'] = 0
+		preLinks['negatives number'] = 0
 
 		postLinks = {}
-		postLinks['total'] = 0
-		postLinks['pos'] = 0
-		postLinks['neg'] = 0
+		postLinks['total number'] = 0
+		postLinks['positives number'] = 0
+		postLinks['negatives number'] = 0
 
 		# Calculate statistical parameters & fill dictionaries
 		for (_, (_,v)) in nodesData1.items():
-			preNodes['total'] = preNodes['total'] + 1
+			preNodes['total number'] = preNodes['total number'] + 1
 			# For calculation of mean: Use 0 as valence for ambivalent nodes (instead of -99)
 			if v == -99:
 				v0 = 0
 			else:
 				v0 = v
-			preNodes['avgValence'] += v0
+			preNodes['AVG valence'] += v0
 
-		preNodes['avgValence'] = preNodes['avgValence'] / preNodes['total']
+		preNodes['AVG valence'] = preNodes['AVG valence'] / preNodes['total number']
 
 		squaredDiff = 0
 		for (_, (_, v)) in nodesData1.items():
 			if int(v) > 0:
-				preNodes['pos'] = preNodes['pos'] + 1
+				preNodes['positives number'] = preNodes['positives number'] + 1
 			elif int(v) < 0 and int(v) > -99:
-				preNodes['neg'] = preNodes['neg'] + 1
+				preNodes['negatives number'] = preNodes['negatives number'] + 1
 			elif int(v) == 0:
-				preNodes['neutral'] = preNodes['neutral'] + 1
+				preNodes['neutrals number'] = preNodes['neutrals number'] + 1
 			elif int(v) == -99:
-				preNodes['amb'] = preNodes['amb'] + 1
+				preNodes['ambivalents number'] = preNodes['ambivalents number'] + 1
 
 			# For calculation of SD: Use 0 as valence for ambivalent nodes (instead of -99)
 			if int(v) == -99:
 				v0 = 0
 			else:
 				v0 = int(v)
-			squaredDiff += (v0 - preNodes['avgValence']) ** 2
+			squaredDiff += (v0 - preNodes['AVG valence']) ** 2
 
-		preNodes['SDValence'] = math.sqrt(squaredDiff / (preNodes['total'] - 1))
+		preNodes['SD valence'] = math.sqrt(squaredDiff / (preNodes['total number'] - 1))
 
 		valsByDegree = {}
 		meansByDegreePre = {}
@@ -555,47 +555,47 @@ class Sheet:
 
 		# Link no in pre-CAM
 		for (_, s) in linksData1.items():
-			preLinks['total'] = preLinks['total'] + 1
+			preLinks['total number'] = preLinks['total number'] + 1
 			if s > 0:
-				preLinks['pos'] = preLinks['pos'] + 1
+				preLinks['positives number'] = preLinks['positives number'] + 1
 			else:
-				preLinks['neg'] = preLinks['neg'] + 1
+				preLinks['negatives number'] = preLinks['negatives number'] + 1
 
 		# Calculate density
-		preDensity = preLinks['total']/binomial(preNodes['total'], 2)
+		preDensity = preLinks['total number']/binomial(preNodes['total number'], 2)
 
 		'''
 		Same for post-CAM
 		'''
 		for (t, (_, v)) in nodesData2.items():
-			postNodes['total'] = postNodes['total'] + 1
+			postNodes['total number'] = postNodes['total number'] + 1
 			if v == -99:
 				v0 = 0
 			else:
 				v0 = v
-			postNodes['avgValence'] += v0
+			postNodes['AVG valence'] += v0
 
-		postNodes['avgValence'] = postNodes['avgValence'] / postNodes['total']
+		postNodes['AVG valence'] = postNodes['AVG valence'] / postNodes['total number']
 
 		squaredDiff = 0
 
 		for (_, (_, v)) in nodesData2.items():
 			if int(v) > 0:
-				postNodes['pos'] = postNodes['pos'] + 1
+				postNodes['positives number'] = postNodes['positives number'] + 1
 			elif int(v) < 0 and int(v) > -99:
-				postNodes['neg'] = postNodes['neg'] + 1
+				postNodes['negatives number'] = postNodes['negatives number'] + 1
 			elif int(v) == 0:
-				postNodes['neutral'] = postNodes['neutral'] + 1
+				postNodes['neutrals number'] = postNodes['neutrals number'] + 1
 			elif int(v) == -99:
-				postNodes['amb'] = postNodes['amb'] + 1
+				postNodes['ambivalents number'] = postNodes['ambivalents number'] + 1
 
 			if int(v) == -99:
 				v0 = 0
 			else:
 				v0 = int(v)
-			squaredDiff += (v0 - postNodes['avgValence']) ** 2
+			squaredDiff += (v0 - postNodes['AVG valence']) ** 2
 
-		postNodes['SDValence'] = math.sqrt(squaredDiff / (postNodes['total'] - 1))
+		postNodes['SD valence'] = math.sqrt(squaredDiff / (postNodes['total number'] - 1))
 
 		valsByDegree = {}
 		meansByDegreePost = {}
@@ -617,35 +617,45 @@ class Sheet:
 
 		# Link no in post-CAM
 		for (_, s) in linksData2.items():
-			postLinks['total'] = postLinks['total'] + 1
+			postLinks['total number'] = postLinks['total number'] + 1
 			if s > 0:
-				postLinks['pos'] = postLinks['pos'] + 1
+				postLinks['positives number'] = postLinks['positives number'] + 1
 			else:
-				postLinks['neg'] = postLinks['neg'] + 1
+				postLinks['negatives number'] = postLinks['negatives number'] + 1
 
 		# Calculate density
-		postDensity = postLinks['total']/binomial(postNodes['total'], 2)
+		postDensity = postLinks['total number']/binomial(postNodes['total number'], 2)
 
 		'''
 		Concat statistics
 		'''
-		self.statisticsStr = "### PRE-CAM: NODES ###"
-		for (k, v) in preNodes.items():
-			self.statisticsStr += "\n%s: %.4f" %(k, v)
+		self.statisticsStr = "## PRE-CAM: NODES ##"
+		pairs1 = {k: preNodes[k] for k in list(preNodes)[:5]}
+		pairs2 = {k: preNodes[k] for k in list(preNodes)[-2:]}
+		for (k, v) in pairs1.items():
+			self.statisticsStr += "\n%s: %i" %(k, v)
+		for (k, v) in pairs2.items():
+				self.statisticsStr += "\n%s: %.4f" %(k, v)
+		self.statisticsStr += "\n### AVG valence by degree: ###"
 		for (d, m) in meansByDegreePre.items():
-			self.statisticsStr += "\nMean - Degree %d: %.4f" %(d, m)
-		self.statisticsStr += "\n### PRE-CAM LINKS: ###"
+			self.statisticsStr += "\ndegree %d: %.4f" %(d, m)
+		self.statisticsStr += "\n## PRE-CAM LINKS: ##"
 		for (k, v) in preLinks.items():
 			self.statisticsStr += "\n%s: %.4f" %(k, v)
 		self.statisticsStr += "\nDensity: %.4f" %preDensity
 
 		self.statisticsStr += "\n----------------------"
-		self.statisticsStr += "\n### POST-CAM-NODES ###"
-		for (k, v) in postNodes.items():
+		self.statisticsStr += "\n## POST-CAM-NODES ##"
+		pairs1 = {k: postNodes[k] for k in list(postNodes)[:5]}
+		pairs2 = {k: postNodes[k] for k in list(postNodes)[-2:]}
+		for (k, v) in pairs1.items():
+			self.statisticsStr += "\n%s: %i" % (k, v)
+		for (k, v) in pairs2.items():
 			self.statisticsStr += "\n%s: %.4f" % (k, v)
+		self.statisticsStr += "\n### AVG valence by degree: ###"
 		for (d, m) in meansByDegreePost.items():
 			self.statisticsStr += "\nMean - Degree %d: %.4f" %(d, m)
-		self.statisticsStr += "\n### POST-CAM LINKS: ###"
+		self.statisticsStr += "\n## POST-CAM LINKS: ##"
 		for (k, v) in postLinks.items():
 			self.statisticsStr += "\n%s: %.4f" %(k, v)
 		self.statisticsStr += "\nDensity: %.4f" %postDensity
