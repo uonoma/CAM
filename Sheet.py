@@ -627,41 +627,170 @@ class Sheet:
 		postDensity = postLinks['total number']/binomial(postNodes['total number'], 2)
 
 		'''
-		Concat statistics
+		Create statistics table
 		'''
-		self.statisticsStr = "## PRE-CAM: NODES ##"
+		# Toplevel window for statistics table
+		top = tkinter.Toplevel()
+		top.title("Statistics")
+		top.geometry("400x800")
+
+		#### PRE-CAM STATISTICS	####
+
+		# Number fields
 		pairs1 = {k: preNodes[k] for k in list(preNodes)[:5]}
+		# Aggregate fields
 		pairs2 = {k: preNodes[k] for k in list(preNodes)[-2:]}
-		for (k, v) in pairs1.items():
-			self.statisticsStr += "\n%s: %i" %(k, v)
-		for (k, v) in pairs2.items():
-				self.statisticsStr += "\n%s: %.4f" %(k, v)
-		self.statisticsStr += "\n### AVG valence by degree: ###"
-		for (d, m) in meansByDegreePre.items():
-			self.statisticsStr += "\ndegree %d: %.4f" %(d, m)
-		self.statisticsStr += "\n## PRE-CAM LINKS: ##"
-		for (k, v) in preLinks.items():
-			self.statisticsStr += "\n%s: %.4f" %(k, v)
-		self.statisticsStr += "\nDensity: %.4f" %preDensity
 
-		self.statisticsStr += "\n----------------------"
-		self.statisticsStr += "\n## POST-CAM-NODES ##"
+		row = 0
+
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=0, sticky=NSEW)
+		e.insert(END, "PRE-CAM: NODES")
+
+		for (k,v) in pairs1.items():
+			row += 1
+			# First column: field name
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=0, sticky=NSEW)
+			e.insert(END, k)
+			# Second column: value
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=1, sticky=NSEW)
+			e.insert(END, v)
+		for (k,v) in pairs2.items():
+			row += 1
+			# First column: field name
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=0, sticky=NSEW)
+			e.insert(END, k)
+			# Second column: value
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=1, sticky=NSEW)
+			# Round aggregate values to 2 decimals
+			e.insert(END, round(v, 2))
+
+		# Average valence by degree
+		row += 1
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=0, ipadx=60, sticky=NSEW)
+		e.insert(END, "PRE-CAM: AVERAGE VALENCE BY DEGREE")
+
+		for (d,m) in meansByDegreePre.items():
+			row += 1
+			# First column: field name
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=0, sticky=NSEW)
+			e.insert(END, "AVG Degree %i" %d)
+			# Second column: value
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=1, sticky=NSEW)
+			# Round aggregate values to 2 decimals
+			e.insert(END, round(m, 2))
+
+		# PRE-CAM: LINKS
+		row += 1
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=0, ipadx=25, sticky=NSEW)
+		e.insert(END, "PRE-CAM: LINKS")
+
+		for (k,v) in preLinks.items():
+			row += 1
+			# First column: field name
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=0, sticky=NSEW)
+			e.insert(END, k)
+			# Second column: value
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=1, sticky=NSEW)
+			# Round aggregate values to 2 decimals
+			e.insert(END, round(v, 2))
+
+		row += 1
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=0, ipadx=25, sticky=NSEW)
+		e.insert(END, "density")
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=1, ipadx=25, sticky=NSEW)
+		e.insert(END, round(preDensity, 2))
+
+		#### POST-CAM STATISTICS	####
+
+		# Number fields
 		pairs1 = {k: postNodes[k] for k in list(postNodes)[:5]}
+		# Aggregate fields
 		pairs2 = {k: postNodes[k] for k in list(postNodes)[-2:]}
-		for (k, v) in pairs1.items():
-			self.statisticsStr += "\n%s: %i" % (k, v)
-		for (k, v) in pairs2.items():
-			self.statisticsStr += "\n%s: %.4f" % (k, v)
-		self.statisticsStr += "\n### AVG valence by degree: ###"
-		for (d, m) in meansByDegreePost.items():
-			self.statisticsStr += "\nMean - Degree %d: %.4f" %(d, m)
-		self.statisticsStr += "\n## POST-CAM LINKS: ##"
-		for (k, v) in postLinks.items():
-			self.statisticsStr += "\n%s: %.4f" %(k, v)
-		self.statisticsStr += "\nDensity: %.4f" %postDensity
 
-		self.openInfoBox(self.statisticsStr)
+		row += 1
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=0, sticky=NSEW)
+		e.insert(END, "POST-CAM: NODES")
 
+		for (k,v) in pairs1.items():
+			row += 1
+			# First column: field name
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=0, sticky=NSEW)
+			e.insert(END, k)
+			# Second column: value
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=1, sticky=NSEW)
+			e.insert(END, v)
+		for (k,v) in pairs2.items():
+			row += 1
+			# First column: field name
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=0, sticky=NSEW)
+			e.insert(END, k)
+			# Second column: value
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=1, sticky=NSEW)
+			# Round aggregate values to 2 decimals
+			e.insert(END, round(v, 2))
+
+		# Average valence by degree
+		row += 1
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=0, ipadx=25, sticky=NSEW)
+		e.insert(END, "POST-CAM: AVERAGE VALENCE BY DEGREE")
+
+		for (d,m) in meansByDegreePost.items():
+			row += 1
+			# First column: field name
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=0, sticky=NSEW)
+			e.insert(END, "AVG Degree %i" %d)
+			# Second column: value
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=1, sticky=NSEW)
+			# Round aggregate values to 2 decimals
+			e.insert(END, round(m, 2))
+
+		# POST-CAM: LINKS
+		row += 1
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=0, ipadx=25, sticky=NSEW)
+		e.insert(END, "POST-CAM: LINKS")
+
+		for (k,v) in postLinks.items():
+			row += 1
+			# First column: field name
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=0, sticky=NSEW)
+			e.insert(END, k)
+			# Second column: value
+			e = Entry(top, relief=GROOVE)
+			e.grid(row=row, column=1, sticky=NSEW)
+			# Round aggregate values to 2 decimals
+			e.insert(END, round(v, 2))
+
+		row += 1
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=0, ipadx=25, sticky=NSEW)
+		e.insert(END, "density")
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=1, ipadx=25, sticky=NSEW)
+		e.insert(END, round(postDensity, 2))
+		top.mainloop()
 
 	def lookupNodeIndex(self, text):
 		for n in self.nodes:
