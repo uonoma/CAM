@@ -42,9 +42,8 @@ class Node:
 		self.textColour = self.cs.darkText
 
 		# False if text can be edited, true if read-only
-		self.textDisabled = True
-		self.readOnly = True
-
+		self.textDisabled = False
+		self.readOnly = False
 
 		# Valence and respective node shape
 		self.valence = 0
@@ -339,6 +338,8 @@ class Node:
 
 			self.tk_text.tag_configure("center", justify='center')
 			self.tk_text.tag_add("center", 1.0, "end")
+
+			self.tk_text.config(state=NORMAL)
 
 			if self.readOnly:
 				self.tk_text.config(state=DISABLED)
