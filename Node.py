@@ -442,17 +442,8 @@ class Node:
 		self.parentSheet.updateNodeEdges(self)
 		return
 
-	def onRightDrag(self, event):
-		# calculate new radius
-		center = self.coords
-		curPos = (event.x, event.y)
-
-		d = dist(center, curPos)
-
-		self.r = d
-
+	def updateNode(self, event):
 		self.reDraw()
-
 		self.parentSheet.updateNodeEdges(self)
 
 	def updateText(self):
