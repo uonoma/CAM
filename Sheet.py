@@ -48,6 +48,10 @@ class Sheet:
 		# Delete currently selected node on <Delete>
 		self.canvas.bind_all('<Delete>', self.deleteSelected)
 
+		# Update radius of selected node on up/down key
+		self.canvas.bind_all('<Up>', lambda x: self.updateNodeRadius(1))
+		self.canvas.bind_all('<Down>', lambda x: self.updateNodeRadius(-1))
+
 		# drag nodes on mouse click/release
 		self.canvas.bind('<Button-1>', self.startDrag)
 		self.canvas.bind('<B1-Motion>', self.onDrag)
@@ -151,6 +155,15 @@ class Sheet:
 			l = self.getLinkByIndex(self.selectedLink[0], self.selectedLink[1])
 			l.removeByClick()
 
+	def updateNodeRadius(self, add, event=[]):
+		if not self.selectedNode == -99:
+			n = self.getNodeByIndex(self.selectedNode)
+			if n.r + add < 0:
+				return
+			n.r += add
+			n.reDraw()
+			self.updateNodeEdges()
+
 	def computeDiffCam(self, cam1, cam2):
 		archive1 = zipfile.ZipFile(cam1, 'r')
 		names1 = archive1.namelist()
@@ -214,9 +227,6 @@ class Sheet:
 			if version == 1:
 				index = float(row[7])
 			text = row[1]
-
-			# Neighbors list updated later
-			neighbors = []
 
 			nodesData1.update({text: (index, valence)})
 
@@ -564,6 +574,7 @@ class Sheet:
 		# Calculate density
 		preDensity = preLinks['total number']/binomial(preNodes['total number'], 2)
 
+#
 		'''
 		Same for post-CAM
 		'''
