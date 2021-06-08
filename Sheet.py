@@ -164,6 +164,11 @@ class Sheet:
 			n.reDraw()
 			self.updateNodeEdges()
 
+	def resetNodeSizes(self, event=[]):
+		for n in self.nodes:
+			n.r = n.std_r
+			n.reDraw()
+
 	def computeDiffCam(self, cam1, cam2):
 		archive1 = zipfile.ZipFile(cam1, 'r')
 		names1 = archive1.namelist()
