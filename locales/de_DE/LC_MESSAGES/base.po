@@ -118,9 +118,12 @@ msgstr "Wähle Dateien zum Aggregieren aus"
 msgid "Select file"
 msgstr "Wähle Datei aus"
 
-msgid "Substract CAMs"
+msgid "Subtract CAMs"
 msgstr "CAMs abziehen"
 
 msgid "Export as .png"
 msgstr "Nach .png exportieren"
+
+msgid "Reset node sizes to default"
+msgstr "Knotengrößen zum Standard zurücksetzen"
 

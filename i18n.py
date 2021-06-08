@@ -45,7 +45,8 @@ DEFAULTRADIUSSTR = _("Default Radius For All Nodes")
 COMBINEAMBNEUTRALNODESSTR = _("Combine Ambivalent And Neutral Nodes")
 AMBNODESSEPARATELYSTR = _("Display Ambivalent Nodes Separately")
 AGGREGATESTR = _("Aggregate CAMs")
-MINUSSTR = _("Substract CAMs")
+MINUSSTR = _("Subtract CAMs")
+RESETSTR = _("Reset node sizes to default")
 
 # Title bar
 PROGRAMSTR = "CAMMaker "

@@ -23,11 +23,14 @@ class MainMenu:
 	def initMenu(self):
 		menubar = self.menu
 
+		self.resetBtn = ImageButton(menu=self, image="data/reset.png",
+									cmd=self.parentSheet.resetNodeSizes, tooltiptext=MINUSSTR)
+		self.resetBtn.grid(row=0, column=3,padx=140)
+
 		self.minusBtn = ImageButton(menu=self, image="data/minus.png",
 			cmd=self.parentSheet.openFilesForDiff, tooltiptext=MINUSSTR)
 		self.minusBtn.grid(row=0, column=3,padx=70)
 
-		# TODO: Export to csv
 		self.saveFileBtn = ImageButton(menu=self, image="data/save.png",
 			cmd=self.parentSheet.saveFileAs, tooltiptext=SAVESTR)
 		self.saveFileBtn.grid(row=0, column=3,padx=0)
