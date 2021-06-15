@@ -505,7 +505,6 @@ class Sheet:
 		postNodes['AVG valence'] = 0
 		postNodes['SD valence'] = 0
 
-		# TODO: Create link dictionaries
 		# Dictionary keys: 'total', 'pos', 'neg'
 		preLinks = {}
 		preLinks['total number'] = 0
@@ -834,7 +833,7 @@ class Sheet:
 #		# acceptance field is deprecated
 #		for n in self.nodes:
 #			nData={}
-#		#	nData['acceptance'] = n.acceptance
+#			nData['acceptance'] = n.acceptance
 #			nData['index'] = n.index
 #			nData['coords'] = n.coords
 #			nData['radius'] = n.r
@@ -977,9 +976,9 @@ class Sheet:
 		fileNamePost = tkinter.filedialog.askopenfilename(initialdir = FILEDIR,title =
 			SELECTPOSTFILESTR,filetypes = [("Empathica CAM","*.zip")])
 
-		self.computeDiffCam(fileNamePre, fileNamePost)
 		self.fileOpen = True
-		
+		self.computeDiffCam(fileNamePre, fileNamePost)
+
 	def reInitNodes(self):
 		for n in self.nodes:
 			n.canvas.delete(n.shapeIndex)
