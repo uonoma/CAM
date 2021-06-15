@@ -823,43 +823,6 @@ class Sheet:
 			if n.text == text:
 				return n.index
 
-# Deprecated. New function: exportAsCsv
-
-#	def saveData(self, event=[]):
-#		data = {}
-#		data['root_geometry'] = self.root.winfo_geometry()
-#		data['nodes'] = []
-#
-#		# acceptance field is deprecated
-#		for n in self.nodes:
-#			nData={}
-#			nData['acceptance'] = n.acceptance
-#			nData['index'] = n.index
-#			nData['coords'] = n.coords
-#			nData['radius'] = n.r
-#			nData['text'] = n.getText()
-#			nData['valence'] = int(n.valence)
-#			nData['read-only'] = n.readOnly
-#			nData['comment'] = n.commentText
-#
-#			data['nodes'].append(nData)
-#
-#			data['links'] = []
-#		for l in self.links:
-#			lData={}
-#			lData['nA'] = l.nA.index
-#			lData['nB'] = l.nB.index
-#			lData['directed'] = l.directed
-#			lData['strength'] = max(l.strengthA, l.strengthB)
-#			lData['comment'] = l.commentText
-#			if not l.dashed == ():
-#				lData['strength'] = -lData['strength']
-#			data['links'].append(lData)
-#
-#		self.exportAsCsv()
-#
-#		return
-
 	def exportAsCsv(self):
 		delim = ';'
 		fnBaseLong, fnExt = os.path.splitext(self.filename)[0], os.path.splitext(self.filename)[1]
