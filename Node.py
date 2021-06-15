@@ -289,6 +289,13 @@ class Node:
 
 		# Re-draw shapes with updated coordinates
 		else:
+            # TODO
+			r = self.r
+			x0p, y0p = x - r, y - r
+
+			prePosRect_coords = (x0p - 20, y0p + 120, x0p + 60, y0p + 40)
+			prePosCircle_coords = (x0p - 15, y0p + 125, x0p + 75, y0p + 35)
+
 			if self.shape == 0 or self.shape == 1:
 				self.canvas.coords(self.shapeIndex, x0p, y0p, x1p, y1p)
 			elif self.shape == 2:
