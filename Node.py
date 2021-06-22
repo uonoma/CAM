@@ -180,8 +180,8 @@ class Node:
 
 		# Polygon coordinates for small nodes (nodes present in pre-CAM and post-CAM)
 		hexVertices_small = map(lambda i: \
-							  (x - 20 + (self.r - 7) * math.cos(i * 2 * math.pi / 6),
-							   y + 30 + (self.r - 7) * math.sin(i * 2 * math.pi / 6)),
+							  (x - r/2 + (self.r - 7) * math.cos(i * 2 * math.pi / 6),
+							   y + r/3 + (self.r - 7) * math.sin(i * 2 * math.pi / 6)),
 						  [i for i in range(0, 6)])
 
 		# Use "big" coordinates for post-CAM nodes
@@ -193,8 +193,8 @@ class Node:
 		x1p, y1p = x + r, y + r
 
 		# "Small" coordinates for shapes other than polygons, for pre-CAM nodes also present in post-CAM
-		prePosRect_coords = (x0p - 20, y0p + 120, x0p + 60, y0p + 40)
-		prePosCircle_coords = (x0p - 15, y0p + 125, x0p + 75, y0p + 35)
+		prePosRect_coords = (x0p - r/2, y0p + r, x1p - r, y1p + r/2)
+		prePosCircle_coords = (x0p - r * 2/5, y0p + r/3, x1p - r * 2/5, y1p + r/4)
 
 		# "Small" coordinates for shapes other than polygons, for pre-CAM nodes that were deleted in post-CAM
 
@@ -289,13 +289,6 @@ class Node:
 
 		# Re-draw shapes with updated coordinates
 		else:
-            # TODO
-			r = self.r
-			x0p, y0p = x - r, y - r
-
-			prePosRect_coords = (x0p - 20, y0p + 120, x0p + 60, y0p + 40)
-			prePosCircle_coords = (x0p - 15, y0p + 125, x0p + 75, y0p + 35)
-
 			if self.shape == 0 or self.shape == 1:
 				self.canvas.coords(self.shapeIndex, x0p, y0p, x1p, y1p)
 			elif self.shape == 2:
