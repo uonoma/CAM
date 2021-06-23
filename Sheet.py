@@ -648,6 +648,7 @@ class Sheet:
 		top = tkinter.Toplevel()
 		top.title("Statistics")
 		top.geometry("800x400")
+		top.protocol("WM_DELETE_WINDOW", passEvent)
 
 		#### PRE-CAM STATISTICS	####
 
@@ -1193,3 +1194,6 @@ class Sheet:
 		elif strength == 3:
 			strengthStr = "Solid-Strong"
 		return strengthStr
+
+def passEvent():
+	pass
