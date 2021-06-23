@@ -162,7 +162,7 @@ class Sheet:
 				return
 			n.r += add
 			n.reDraw()
-			self.updateNodeEdges()
+			self.updateNodeEdges(n)
 
 	def resetNodeSizes(self, event=[]):
 		for n in self.nodes:
@@ -647,7 +647,7 @@ class Sheet:
 		# Toplevel window for statistics table
 		top = tkinter.Toplevel()
 		top.title("Statistics")
-		top.geometry("400x800")
+		top.geometry("800x400")
 
 		#### PRE-CAM STATISTICS	####
 
@@ -658,7 +658,7 @@ class Sheet:
 
 		row = 0
 
-		e = Entry(top, relief=GROOVE)
+		e = Entry(top, relief=SOLID, bg="cyan")
 		e.grid(row=row, column=0, sticky=NSEW)
 		e.insert(END, "PRE-CAM: NODES")
 
@@ -686,7 +686,7 @@ class Sheet:
 
 		# Average valence by degree
 		row += 1
-		e = Entry(top, relief=GROOVE)
+		e = Entry(top, relief=SOLID, bg="cyan")
 		e.grid(row=row, column=0, ipadx=60, sticky=NSEW)
 		e.insert(END, "PRE-CAM: AVERAGE VALENCE BY DEGREE")
 
@@ -704,7 +704,7 @@ class Sheet:
 
 		# PRE-CAM: LINKS
 		row += 1
-		e = Entry(top, relief=GROOVE)
+		e = Entry(top, relief=SOLID, bg="cyan")
 		e.grid(row=row, column=0, ipadx=25, sticky=NSEW)
 		e.insert(END, "PRE-CAM: LINKS")
 
@@ -735,75 +735,75 @@ class Sheet:
 		# Aggregate fields
 		pairs2 = {k: postNodes[k] for k in list(postNodes)[-2:]}
 
-		row += 1
-		e = Entry(top, relief=GROOVE)
-		e.grid(row=row, column=0, sticky=NSEW)
+		row = 0
+		e = Entry(top, relief=SOLID, bg="cyan")
+		e.grid(row=row, column=2, sticky=NSEW)
 		e.insert(END, "POST-CAM: NODES")
 
 		for (k,v) in pairs1.items():
 			row += 1
 			# First column: field name
 			e = Entry(top, relief=GROOVE)
-			e.grid(row=row, column=0, sticky=NSEW)
+			e.grid(row=row, column=2, sticky=NSEW)
 			e.insert(END, k)
 			# Second column: value
 			e = Entry(top, relief=GROOVE)
-			e.grid(row=row, column=1, sticky=NSEW)
+			e.grid(row=row, column=3, sticky=NSEW)
 			e.insert(END, v)
 		for (k,v) in pairs2.items():
 			row += 1
 			# First column: field name
 			e = Entry(top, relief=GROOVE)
-			e.grid(row=row, column=0, sticky=NSEW)
+			e.grid(row=row, column=2, sticky=NSEW)
 			e.insert(END, k)
 			# Second column: value
 			e = Entry(top, relief=GROOVE)
-			e.grid(row=row, column=1, sticky=NSEW)
+			e.grid(row=row, column=3, sticky=NSEW)
 			# Round aggregate values to 2 decimals
 			e.insert(END, round(v, 2))
 
 		# Average valence by degree
 		row += 1
-		e = Entry(top, relief=GROOVE)
-		e.grid(row=row, column=0, ipadx=25, sticky=NSEW)
+		e = Entry(top, relief=SOLID, bg="cyan")
+		e.grid(row=row, column=2, ipadx=25, sticky=NSEW)
 		e.insert(END, "POST-CAM: AVERAGE VALENCE BY DEGREE")
 
 		for (d,m) in meansByDegreePost.items():
 			row += 1
 			# First column: field name
 			e = Entry(top, relief=GROOVE)
-			e.grid(row=row, column=0, sticky=NSEW)
+			e.grid(row=row, column=2, sticky=NSEW)
 			e.insert(END, "AVG Degree %i" %d)
 			# Second column: value
 			e = Entry(top, relief=GROOVE)
-			e.grid(row=row, column=1, sticky=NSEW)
+			e.grid(row=row, column=3, sticky=NSEW)
 			# Round aggregate values to 2 decimals
 			e.insert(END, round(m, 2))
 
 		# POST-CAM: LINKS
 		row += 1
-		e = Entry(top, relief=GROOVE)
-		e.grid(row=row, column=0, ipadx=25, sticky=NSEW)
+		e = Entry(top, relief=SOLID, bg="cyan")
+		e.grid(row=row, column=2, ipadx=25, sticky=NSEW)
 		e.insert(END, "POST-CAM: LINKS")
 
 		for (k,v) in postLinks.items():
 			row += 1
 			# First column: field name
 			e = Entry(top, relief=GROOVE)
-			e.grid(row=row, column=0, sticky=NSEW)
+			e.grid(row=row, column=2, sticky=NSEW)
 			e.insert(END, k)
 			# Second column: value
 			e = Entry(top, relief=GROOVE)
-			e.grid(row=row, column=1, sticky=NSEW)
+			e.grid(row=row, column=3, sticky=NSEW)
 			# Round aggregate values to 2 decimals
 			e.insert(END, round(v, 2))
 
 		row += 1
 		e = Entry(top, relief=GROOVE)
-		e.grid(row=row, column=0, ipadx=25, sticky=NSEW)
+		e.grid(row=row, column=2, ipadx=25, sticky=NSEW)
 		e.insert(END, "density")
 		e = Entry(top, relief=GROOVE)
-		e.grid(row=row, column=1, ipadx=25, sticky=NSEW)
+		e.grid(row=row, column=3, ipadx=25, sticky=NSEW)
 		e.insert(END, round(postDensity, 2))
 		top.mainloop()
 
