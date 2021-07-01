@@ -493,9 +493,6 @@ class Sheet:
 		# Standard deviation
 		preNodes['SD valence'] = 0
 
-		# Mean by degree
-		preMeanByDegree = []
-
 		# Same for post-CAM
 		postNodes['total number'] = 0
 		postNodes['positives number'] = 0
@@ -548,24 +545,17 @@ class Sheet:
 
 		preNodes['SD valence'] = math.sqrt(squaredDiff / (preNodes['total number'] - 1))
 
-		valsByDegree = {}
-		meansByDegreePre = {}
-
+		# Calculate average degree
+		degreeSum = 0
 		for (t, (_, v)) in nodesData1.items():
+			degree = 0
+			# If node is connected to neighbor nodes calculate degree
 			try:
 				neighbors = self.neighborsPre[t]
 				degree = len(neighbors)
-			except:
-				degree = 0
-			if valsByDegree.get(degree) is None:
-				valsByDegree[degree] = [v]
-			else:
-				valsByDegree[degree].append(v)
-
-		for (d, vs) in valsByDegree.items():
-			vs1 = [0 if x == -99 else x for x in vs]
-			meanVal = sum(vs1)/len(vs1)
-			meansByDegreePre[d] = meanVal
+			finally:
+				degreeSum += degree
+		meanDegreePre = degreeSum / len(nodesData1)
 
 		# Link no in pre-CAM
 		for (_, s) in linksData1.items():
@@ -578,7 +568,6 @@ class Sheet:
 		# Calculate density
 		preDensity = preLinks['total number']/binomial(preNodes['total number'], 2)
 
-#
 		'''
 		Same for post-CAM
 		'''
@@ -612,23 +601,16 @@ class Sheet:
 
 		postNodes['SD valence'] = math.sqrt(squaredDiff / (postNodes['total number'] - 1))
 
-		valsByDegree = {}
-		meansByDegreePost = {}
+		degreeSum = 0
 		for (t, (_, v)) in nodesData2.items():
+			degree = 0
+			# If node has connected neighbor nodes calculate degree.
 			try:
 				neighbors = self.neighborsPost[t]
 				degree = len(neighbors)
-			except:
-				degree = 0
-			if valsByDegree.get(degree) is None:
-				valsByDegree[degree] = [v]
-			else:
-				valsByDegree[degree].append(v)
-
-		for (d, vs) in valsByDegree.items():
-			vs1 = [0 if x == -99 else x for x in vs]
-			meanVal = sum(vs1)/len(vs1)
-			meansByDegreePost[d] = meanVal
+			finally:
+				degreeSum += degree
+		meanDegreePost = degreeSum / len(nodesData2)
 
 		# Link no in post-CAM
 		for (_, s) in linksData2.items():
@@ -685,23 +667,16 @@ class Sheet:
 			# Round aggregate values to 2 decimals
 			e.insert(END, round(v, 2))
 
-		# Average valence by degree
+		# PRE-CAM: Average degree
 		row += 1
-		e = Entry(top, relief=SOLID, bg="cyan")
+		# First column: field name
+		e = Entry(top, relief=GROOVE)
 		e.grid(row=row, column=0, ipadx=60, sticky=NSEW)
-		e.insert(END, "PRE-CAM: AVERAGE VALENCE BY DEGREE")
-
-		for (d,m) in meansByDegreePre.items():
-			row += 1
-			# First column: field name
-			e = Entry(top, relief=GROOVE)
-			e.grid(row=row, column=0, sticky=NSEW)
-			e.insert(END, "AVG Degree %i" %d)
-			# Second column: value
-			e = Entry(top, relief=GROOVE)
-			e.grid(row=row, column=1, sticky=NSEW)
-			# Round aggregate values to 2 decimals
-			e.insert(END, round(m, 2))
+		e.insert(END, "AVG degree")
+		# Second column: value
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=1, sticky=NSEW)
+		e.insert(END, round(meanDegreePre, 2))
 
 		# PRE-CAM: LINKS
 		row += 1
@@ -763,23 +738,16 @@ class Sheet:
 			# Round aggregate values to 2 decimals
 			e.insert(END, round(v, 2))
 
-		# Average valence by degree
+		# Post-CAM average degree
 		row += 1
-		e = Entry(top, relief=SOLID, bg="cyan")
-		e.grid(row=row, column=2, ipadx=25, sticky=NSEW)
-		e.insert(END, "POST-CAM: AVERAGE VALENCE BY DEGREE")
-
-		for (d,m) in meansByDegreePost.items():
-			row += 1
-			# First column: field name
-			e = Entry(top, relief=GROOVE)
-			e.grid(row=row, column=2, sticky=NSEW)
-			e.insert(END, "AVG Degree %i" %d)
-			# Second column: value
-			e = Entry(top, relief=GROOVE)
-			e.grid(row=row, column=3, sticky=NSEW)
-			# Round aggregate values to 2 decimals
-			e.insert(END, round(m, 2))
+		# First column: field name
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=2, ipadx=60, sticky=NSEW)
+		e.insert(END, "AVG degree")
+		# Second column: value
+		e = Entry(top, relief=GROOVE)
+		e.grid(row=row, column=3, sticky=NSEW)
+		e.insert(END, round(meanDegreePost, 2))
 
 		# POST-CAM: LINKS
 		row += 1
