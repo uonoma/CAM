@@ -91,11 +91,6 @@ class Sheet:
 		self.neighborsPre = {}
 		self.neighborsPost = {}
 
-		# Side bar with numeric data/aggregated information
-		self.sidebar = Frame(root, width=50, bg='white', height=200,
-			borderwidth=2, highlightthickness=1, highlightbackground="black")
-		self.infobox = Label(self.sidebar, text="Statistics:")
-
 		self.menu = MainMenu(self)
 		self.menu.initMenu()
 
@@ -627,10 +622,10 @@ class Sheet:
 		Create statistics table
 		'''
 		# Toplevel window for statistics table
-		top = tkinter.Toplevel()
-		top.title("Statistics")
-		top.geometry("800x400")
-		top.protocol("WM_DELETE_WINDOW", passEvent)
+		self.top = tkinter.Toplevel()
+		self.top.title("Statistics")
+		self.top.geometry("800x400")
+		self.top.protocol("WM_DELETE_WINDOW", passEvent)
 
 		#### PRE-CAM STATISTICS	####
 
@@ -641,28 +636,28 @@ class Sheet:
 
 		row = 0
 
-		e = Entry(top, relief=SOLID, bg="cyan")
+		e = Entry(self.top, relief=SOLID, bg="cyan")
 		e.grid(row=row, column=0, sticky=NSEW)
 		e.insert(END, "PRE-CAM: NODES")
 
 		for (k,v) in pairs1.items():
 			row += 1
 			# First column: field name
-			e = Entry(top, relief=GROOVE)
+			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=0, sticky=NSEW)
 			e.insert(END, k)
 			# Second column: value
-			e = Entry(top, relief=GROOVE)
+			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=1, sticky=NSEW)
 			e.insert(END, v)
 		for (k,v) in pairs2.items():
 			row += 1
 			# First column: field name
-			e = Entry(top, relief=GROOVE)
+			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=0, sticky=NSEW)
 			e.insert(END, k)
 			# Second column: value
-			e = Entry(top, relief=GROOVE)
+			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=1, sticky=NSEW)
 			# Round aggregate values to 2 decimals
 			e.insert(END, round(v, 2))
@@ -670,37 +665,37 @@ class Sheet:
 		# PRE-CAM: Average degree
 		row += 1
 		# First column: field name
-		e = Entry(top, relief=GROOVE)
+		e = Entry(self.top, relief=GROOVE)
 		e.grid(row=row, column=0, ipadx=60, sticky=NSEW)
 		e.insert(END, "AVG degree")
 		# Second column: value
-		e = Entry(top, relief=GROOVE)
+		e = Entry(self.top, relief=GROOVE)
 		e.grid(row=row, column=1, sticky=NSEW)
 		e.insert(END, round(meanDegreePre, 2))
 
 		# PRE-CAM: LINKS
 		row += 1
-		e = Entry(top, relief=SOLID, bg="cyan")
+		e = Entry(self.top, relief=SOLID, bg="cyan")
 		e.grid(row=row, column=0, ipadx=25, sticky=NSEW)
 		e.insert(END, "PRE-CAM: LINKS")
 
 		for (k,v) in preLinks.items():
 			row += 1
 			# First column: field name
-			e = Entry(top, relief=GROOVE)
+			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=0, sticky=NSEW)
 			e.insert(END, k)
 			# Second column: value
-			e = Entry(top, relief=GROOVE)
+			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=1, sticky=NSEW)
 			# Round aggregate values to 2 decimals
 			e.insert(END, round(v, 2))
 
 		row += 1
-		e = Entry(top, relief=GROOVE)
+		e = Entry(self.top, relief=GROOVE)
 		e.grid(row=row, column=0, ipadx=25, sticky=NSEW)
 		e.insert(END, "density")
-		e = Entry(top, relief=GROOVE)
+		e = Entry(self.top, relief=GROOVE)
 		e.grid(row=row, column=1, ipadx=25, sticky=NSEW)
 		e.insert(END, round(preDensity, 2))
 
@@ -712,28 +707,28 @@ class Sheet:
 		pairs2 = {k: postNodes[k] for k in list(postNodes)[-2:]}
 
 		row = 0
-		e = Entry(top, relief=SOLID, bg="cyan")
+		e = Entry(self.top, relief=SOLID, bg="cyan")
 		e.grid(row=row, column=2, sticky=NSEW)
 		e.insert(END, "POST-CAM: NODES")
 
 		for (k,v) in pairs1.items():
 			row += 1
 			# First column: field name
-			e = Entry(top, relief=GROOVE)
+			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=2, sticky=NSEW)
 			e.insert(END, k)
 			# Second column: value
-			e = Entry(top, relief=GROOVE)
+			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=3, sticky=NSEW)
 			e.insert(END, v)
 		for (k,v) in pairs2.items():
 			row += 1
 			# First column: field name
-			e = Entry(top, relief=GROOVE)
+			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=2, sticky=NSEW)
 			e.insert(END, k)
 			# Second column: value
-			e = Entry(top, relief=GROOVE)
+			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=3, sticky=NSEW)
 			# Round aggregate values to 2 decimals
 			e.insert(END, round(v, 2))
@@ -741,40 +736,40 @@ class Sheet:
 		# Post-CAM average degree
 		row += 1
 		# First column: field name
-		e = Entry(top, relief=GROOVE)
+		e = Entry(self.top, relief=GROOVE)
 		e.grid(row=row, column=2, ipadx=60, sticky=NSEW)
 		e.insert(END, "AVG degree")
 		# Second column: value
-		e = Entry(top, relief=GROOVE)
+		e = Entry(self.top, relief=GROOVE)
 		e.grid(row=row, column=3, sticky=NSEW)
 		e.insert(END, round(meanDegreePost, 2))
 
 		# POST-CAM: LINKS
 		row += 1
-		e = Entry(top, relief=SOLID, bg="cyan")
+		e = Entry(self.top, relief=SOLID, bg="cyan")
 		e.grid(row=row, column=2, ipadx=25, sticky=NSEW)
 		e.insert(END, "POST-CAM: LINKS")
 
 		for (k,v) in postLinks.items():
 			row += 1
 			# First column: field name
-			e = Entry(top, relief=GROOVE)
+			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=2, sticky=NSEW)
 			e.insert(END, k)
 			# Second column: value
-			e = Entry(top, relief=GROOVE)
+			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=3, sticky=NSEW)
 			# Round aggregate values to 2 decimals
 			e.insert(END, round(v, 2))
 
 		row += 1
-		e = Entry(top, relief=GROOVE)
+		e = Entry(self.top, relief=GROOVE)
 		e.grid(row=row, column=2, ipadx=25, sticky=NSEW)
 		e.insert(END, "density")
-		e = Entry(top, relief=GROOVE)
+		e = Entry(self.top, relief=GROOVE)
 		e.grid(row=row, column=3, ipadx=25, sticky=NSEW)
 		e.insert(END, round(postDensity, 2))
-		top.mainloop()
+		self.top.mainloop()
 
 	def lookupNodeIndex(self, text):
 		for n in self.nodes:
@@ -921,7 +916,7 @@ class Sheet:
 		if drawn:
 			for node in self.nodes:
 				node.remove()
-			self.closeInfoBox()
+			self.closeStatistics()
 			self.canvas.delete("all")
 			self.fileOpen = False
 			self.curIndex = 1
@@ -1125,9 +1120,8 @@ class Sheet:
 		self.sidebar.lift()
 		return
 
-	def closeInfoBox(self):
-		self.sidebar.grid_forget()
-		self.infobox.grid_forget()
+	def closeStatistics(self):
+		self.top.destroy()
 
 	def parseValenceTo(self, valence):
 		if valence == 0:
