@@ -886,28 +886,6 @@ class Sheet:
 		# restore statistics window
 		self.top.deiconify()
 
-#		if self.diffCam:
-#			for i in range(0, len(self.diffCamDataLabels)):
-#				row1.append(self.diffCamDataLabels[i])
-#				row2.append(self.diffCamData[i])
-#			csvWriter.writerow(row1)
-#			csvWriter.writerow(row2)
-#		else:
-#			rows = []
-#			nodes = self.nodes
-#			links = self.links
-#			for n in nodes:
-#				if n.acceptance:
-#					rows.append([n.index, "Acceptance", "", n.initTime])
-#				else:
-#					rows.append([n.index, n.text, "", n.initTime])
-#				for l in links:
-#					if n.index == l.nB.index:
-#						rows.append([n.index, l.nA.index, max(l.strengthA,
-#						l.strengthB), l.initTime])
-#			for r in rows:
-#				csvWriter.writerow(r)
-
 	def openFilesForDiff(self):
 		if self.fileOpen:
 			if tkinter.messagebox.askyesno(SAVESTR, ASKSAVESTR):
@@ -1080,56 +1058,6 @@ class Sheet:
 					ltextB = n.text
 			linksWithTexts.append({(ltextA, ltextB): l})
 		return linksWithTexts
-
-#	def calculateNodeStatistics(self, key):
-##		distribution = self.valenceDistributions[key]
-#		distribution = {}
-#		# '1: [], '2': []...
-#		median = ()
-#		numVals = 0
-#		totalNodes = 0
-#		avgValence = 0
-#		neutralNodes = len(distribution["0"])
-#		neg1Nodes = len(distribution["-1"])
-#		neg2Nodes = len(distribution["-2"])
-#		neg3Nodes = len(distribution["-3"])
-#		pos1Nodes = len(distribution["+1"])
-#		pos2Nodes = len(distribution["+2"])
-#		pos3Nodes = len(distribution["+3"])
-#		ambNodes = len(distribution["ambivalent"])
-#		for k,v in distribution.items():
-#			if len(v) > numVals:
-#				median = (k,len(v))
-#				numVals = len(v)
-#			try:
-#				valence = float(k)
-#			except:
-#				if k == "ambivalent":
-#					valence = 0
-#			avgValence = avgValence + valence * len(v)
-#			totalNodes = totalNodes + len(v)
-#		avgValence = avgValence / totalNodes
-#		std = 0
-#		numVals = 0
-#		for k,v in distribution.items():
-#			try:
-#				valence = float(k)
-#			except:
-#				if k == "ambivalent":
-#					valence = 0
-#			for n in range(0,len(v)):
-#				std = std + (valence - avgValence)**2
-#				numVals = numVals + 1
-#		std = std/numVals
-#
-#		statistics = "Node Statistics: " + key.upper() + "\n\n" + "Average Valence: " + str(avgValence) +\
-#			"\n" + "Median: " + str(median[0]) + " (" + str(median[1]) +")" +\
-#			"\nSTD: " + str(std) + "\nNeutral: " + str(neutralNodes) +\
-#			"\nWeak Positive: " + str(pos1Nodes) + "\nPositive: " + str(pos2Nodes) +\
-#			"\nStrong Positive: " + str(pos3Nodes) + "\nWeak Negative: " +\
-#			str(neg1Nodes) + "\nNegative: " + str(neg2Nodes) +\
-#			"\nStrong Negative:" + str(neg3Nodes) + "\nAmbivalent: " + str(ambNodes)
-#		return(statistics)
 
 	def openInfoBox(self, text):
 		self.infobox.config(text=text)
