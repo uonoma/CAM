@@ -14,6 +14,7 @@ from Colours import *
 from Border import *
 from tkinter import filedialog
 from random import choice, randint
+from PIL import ImageGrab
 
 class Sheet:
 
@@ -445,6 +446,7 @@ class Sheet:
 				self.neighborsPost[endNodeText] = [startingNodeText]
 			else:
 				self.neighborsPost[endNodeText].append(startingNodeText)
+
 		'''
 		Draw diff-CAM links
 		'''
@@ -870,6 +872,19 @@ class Sheet:
 			csvWriterLinks.writerow(r)
 			i = i + 1
 
+	def exportToPng(self):
+		x=self.root.winfo_rootx()+self.canvas.winfo_x()
+		y=self.root.winfo_rooty()+self.canvas.winfo_y()
+		x1=x+self.canvas.winfo_width()
+		y1=y+self.canvas.winfo_height()
+		# minimize statistics window before capturing canvas
+		self.top.withdraw()
+		fileString = tkinter.filedialog.asksaveasfilename(initialdir=FILEDIR, defaultextension=".png",
+														  filetypes=[("All Files", "*.*"), ("PNG files", "*.png")])
+		# Capture canvas and save to .png
+		ImageGrab.grab().crop((x,y,x1,y1)).save(fileString)
+		# restore statistics window
+		self.top.deiconify()
 
 #		if self.diffCam:
 #			for i in range(0, len(self.diffCamDataLabels)):
@@ -902,6 +917,9 @@ class Sheet:
 			SELECTPREFILESTR,filetypes = [("Empathica CAM","*.zip")])
 		fileNamePost = tkinter.filedialog.askopenfilename(initialdir = FILEDIR,title =
 			SELECTPOSTFILESTR,filetypes = [("Empathica CAM","*.zip")])
+
+		# TODO
+#		if fileNamePost == ""
 
 		self.fileOpen = True
 		self.computeDiffCam(fileNamePre, fileNamePost)
@@ -1159,3 +1177,4 @@ class Sheet:
 
 def passEvent():
 	pass
+
