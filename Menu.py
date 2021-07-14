@@ -24,11 +24,11 @@ class MainMenu:
 		menubar = self.menu
 
 		self.exportBtn = ImageButton(menu=self, image="data/exportpng.png",
-									cmd=self.parentSheet.exportToPng, tooltiptext=MINUSSTR)
+									cmd=self.parentSheet.exportToPng, tooltiptext=EXPORTPNGSTR)
 		self.exportBtn.grid(row=0, column=3,padx=210)
 
 		self.resetBtn = ImageButton(menu=self, image="data/reset.png",
-									cmd=self.parentSheet.resetNodeSizes, tooltiptext=MINUSSTR)
+									cmd=self.parentSheet.resetNodeSizes, tooltiptext=RESETSTR)
 		self.resetBtn.grid(row=0, column=3,padx=140)
 
 		self.minusBtn = ImageButton(menu=self, image="data/minus.png",
