@@ -1,7 +1,3 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR ORGANIZATION
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
@@ -14,13 +10,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 
-
-#: /home/uno/CAM_shared/CAMMaker1010/cam.pyw:48
 msgid "Node"
 msgstr "Knoten"
 
 msgid "Link"
 msgstr "Link"
+
+msgid "Comment"
+msgstr "Kommentar"
 
 msgid "Sheet"
 msgstr "Seite"
@@ -37,11 +34,20 @@ msgstr "Speichern"
 msgid "Save as..."
 msgstr "Speichern unter..."
 
+msgid "Export as .csv"
+msgstr "Exportieren als .csv"
+
 msgid "File"
 msgstr "Datei"
 
 msgid "Edit"
 msgstr "Bearbeiten"
+
+msgid "Add"
+msgstr "Hinzufügen"
+
+msgid "Remove"
+msgstr "Entfernen"
 
 msgid "Add Node"
 msgstr "Knoten hinzufügen"
@@ -51,6 +57,15 @@ msgstr "Link hinzufügen"
 
 msgid "Add Bidirectional Link"
 msgstr "Bidirektionalen Link hinzufügen"
+
+msgid "Add Unidirectional Link"
+msgstr "Unidirektionalen Link hinzufügen"
+
+msgid "Bidirectional"
+msgstr "Bidirektional"
+
+msgid "Unidirectional"
+msgstr "Unidirektional"
 
 msgid "Add Comment"
 msgstr "Kommentar hinzufügen"
@@ -97,3 +112,11 @@ msgstr "Wähle Dateien zum Aggregieren aus"
 msgid "Select file"
 msgstr "Wähle Datei aus"
 
+msgid "Subtract CAMs"
+msgstr "CAMs abziehen"
+
+msgid "Export as .png"
+msgstr "Nach .png exportieren"
+
+msgid "Reset node sizes to default"
+msgstr "Knotengrößen zum Standard zurücksetzen"

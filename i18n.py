@@ -21,8 +21,6 @@ NEWSTR = _("New")
 OPENSTR = _("Open")
 SAVESTR = _("Save")
 SAVEASSTR = _("Save as...")
-EXPORTSTR = _("Export as .csv")
-SAVEASIMGSTR = _("Export as .png")
 
 FILESTR = _("File")
 EDITSTR = _("Edit")
@@ -45,12 +43,9 @@ DEFAULTRADIUSSTR = _("Default Radius For All Nodes")
 COMBINEAMBNEUTRALNODESSTR = _("Combine Ambivalent And Neutral Nodes")
 AMBNODESSEPARATELYSTR = _("Display Ambivalent Nodes Separately")
 AGGREGATESTR = _("Aggregate CAMs")
-MINUSSTR = _("Subtract CAMs")
-RESETSTR = _("Reset node sizes to default")
 
 # Title bar
 PROGRAMSTR = "CAMMaker "
-AGGREGATEDSTR = _(" Aggregated CAMs:")
 
 # Message boxes
 
@@ -63,3 +58,7 @@ SELECTFILESTR = _("Select file")
 SELECTPREFILESTR = _("Select pre-CAM file")
 SELECTPOSTFILESTR = _("Select post-CAM file")
 
+# Menu buttons
+MINUSSTR = _("Subtract CAMs")
+RESETSTR = _("Reset node sizes to default")
+EXPORTPNGSTR = _("Export as .png")
