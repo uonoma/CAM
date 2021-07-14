@@ -891,13 +891,15 @@ class Sheet:
 			if tkinter.messagebox.askyesno(SAVESTR, ASKSAVESTR):
 				self.saveFileAs()
 			self.closeFile()
+
 		fileNamePre = tkinter.filedialog.askopenfilename(initialdir = FILEDIR,title =
 			SELECTPREFILESTR,filetypes = [("Empathica CAM","*.zip")])
 		fileNamePost = tkinter.filedialog.askopenfilename(initialdir = FILEDIR,title =
 			SELECTPOSTFILESTR,filetypes = [("Empathica CAM","*.zip")])
 
-		# TODO
-#		if fileNamePost == ""
+		# don't proceed if no two files were selected
+		if fileNamePre == "" or fileNamePost == "":
+			return
 
 		self.fileOpen = True
 		self.computeDiffCam(fileNamePre, fileNamePost)
