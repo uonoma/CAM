@@ -37,3 +37,8 @@ CSVFIELDS_LINKS_V1 = ['id','starting_block','ending_block','line_style','creator
                       'end_y','arrow_type','timestamp']
 
 mainFont = "Droid Sans"
+
+def resource_path(relative_path):
+    """ Get absolute path to resource (for PyInstaller) """
+    base_path = getattr(sys, '_MEIPASS2', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)

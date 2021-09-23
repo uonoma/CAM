@@ -1,10 +1,10 @@
 import gettext
-import os
 import locale
+from header import resource_path
 
 (defLang, defEncoding) = locale.getdefaultlocale()
 
-lang = gettext.translation('base', localedir=os.path.join(os.getcwd(), "locales"), languages=[defLang])
+lang = gettext.translation('base', localedir="locales", languages=[defLang])
 lang.install()
 _ = lang.gettext
 

@@ -1,7 +1,6 @@
 import itertools
 
 from Comment import *
-from header import *
 from i18n import *
 from PIL import ImageTk, Image, ImageGrab, ImageDraw
 from Tooltip import *

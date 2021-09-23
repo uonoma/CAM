@@ -23,19 +23,19 @@ class MainMenu:
 	def initMenu(self):
 		menubar = self.menu
 
-		self.exportBtn = ImageButton(menu=self, image="data/exportpng.png",
+		self.exportBtn = ImageButton(menu=self, image=os.path.join("data", "exportpng.png"),
 									cmd=self.parentSheet.exportToPng, tooltiptext=EXPORTPNGSTR)
 		self.exportBtn.grid(row=0, column=3,padx=210)
 
-		self.resetBtn = ImageButton(menu=self, image="data/reset.png",
+		self.resetBtn = ImageButton(menu=self, image=os.path.join("data", "reset.png"),
 									cmd=self.parentSheet.resetNodeSizes, tooltiptext=RESETSTR)
 		self.resetBtn.grid(row=0, column=3,padx=140)
 
-		self.minusBtn = ImageButton(menu=self, image="data/minus.png",
+		self.minusBtn = ImageButton(menu=self, image=os.path.join("data", "minus.png"),
 			cmd=self.parentSheet.openFilesForDiff, tooltiptext=MINUSSTR)
 		self.minusBtn.grid(row=0, column=3,padx=70)
 
-		self.saveFileBtn = ImageButton(menu=self, image="data/save.png",
+		self.saveFileBtn = ImageButton(menu=self, image=os.path.join("data", "save.png"),
 			cmd=self.parentSheet.saveFileAs, tooltiptext=SAVESTR)
 		self.saveFileBtn.grid(row=0, column=3,padx=0)
 

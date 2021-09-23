@@ -14,9 +14,9 @@ class CreateToolTip(object):
 		self.widget.bind("<Key>", self.reload)
 		self.widget.bind("<Leave>", self.close)
 
-	def enter(self):
+	def enter(self, event=None):
 		x = y = 0
-		x += self.widget.winfo_rootx() + 25
+		x += self.widget.winfo_rootx() - 25
 		y += self.widget.winfo_rooty() + 55
 
 		# creates a toplevel window
@@ -35,7 +35,7 @@ class CreateToolTip(object):
 			self.widget.after(500, self.label.pack(ipadx=4, ipady=4))
 			self.ttOpened = True
 
-	def close(self):
+	def close(self, event=None):
 		if self.ttOpened:
 			self.label.pack_forget()
 			self.tw.destroy()
