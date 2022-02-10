@@ -424,7 +424,7 @@ class Sheet:
 			for (t, (i, v)) in nodesData2.items():
 				if int(row[1]) == i:
 					startingNodeText = t
-					startingNodeIndex = self.lookupNodeIndex(endNodeText)
+					startingNodeIndex = self.lookupNodeIndex(startingNodeText)
 				elif int(row[2]) == i:
 					endNodeText = t
 					endNodeIndex = self.lookupNodeIndex(endNodeText)
