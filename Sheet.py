@@ -166,6 +166,10 @@ class Sheet:
 			n.reDraw()
 
 	def computeDiffCam(self, cam1, cam2):
+		""""""
+		'''
+        Open pre-CAM archive
+        '''
 		archive1 = zipfile.ZipFile(cam1, 'r')
 		names1 = archive1.namelist()
 		names1.sort()
@@ -177,65 +181,10 @@ class Sheet:
 			elif n.endswith("links.csv"):
 				linksFile1 = archive1.open(n)
 
-		'''
-        Read nodes from blocks.csv (pre-CAM)
-        '''
-		nodes1 = StringIO(nodesFile1.read().decode('utf-8'))
-		nodesReader1 = csv.reader(nodes1)
-		firstLnNodes = next(nodesReader1)
-
-		nodesversion = 3
-		assert firstLnNodes in [CSVFIELDS_NODES_V1, CSVFIELDS_NODES_V2, CSVFIELDS_NODES_V3],\
-			("Wrong column names in nodes .csv file " + str(cam1))
-		if firstLnNodes == CSVFIELDS_NODES_V1:
-			nodesversion = 1
-		elif firstLnNodes == CSVFIELDS_NODES_V2:
-			nodesversion = 2
-		elif firstLnNodes == CSVFIELDS_NODES_V3:
-			nodesversion = 3
-		links = StringIO(linksFile1.read().decode('utf-8'))
-		linksReader1 = csv.reader(links)
-		firstLnLinks = next(linksReader1)
-		assert firstLnLinks in [CSVFIELDS_LINKS_V1, CSVFIELDS_LINKS_V2],\
-			"Wrong column names in links .csv file"
-		version = nodesversion
-		nodesData1 = {}
-		linksData1 = {}
-
-		for row in nodesReader1:
-			valence = 0
-			if version == 3:
-				shapeCol = 6
-			else:
-				shapeCol = 4
-			if row[4] == "neutral":
-				valence = 0
-			elif row[shapeCol] == "negative weak":
-				valence = -1
-			elif row[shapeCol] == "negative":
-				valence = -2
-			elif row[shapeCol] == "negative strong":
-				valence = -3
-			elif row[shapeCol] == "positive weak":
-				valence = 1
-			elif row[shapeCol] == "positive":
-				valence = 2
-			elif row[shapeCol] == "positive strong":
-				valence = 3
-			elif row[shapeCol] == "ambivalent":
-				valence = -99
-			index = float(row[0])
-			if version == 1:
-				index = float(row[7])
-			text = row[1]
-
-			nodesData1.update({text: (index, valence)})
 
 		'''
-		Read nodes from blocks.csv (post-CAM)
+		Open post-CAM archive
 		'''
-		nodesData2 = {}
-		linksData2 = {}
 		archive2 = zipfile.ZipFile(cam2, 'r')
 		names2 = archive2.namelist()
 		nodesFile2 = ""
@@ -245,56 +194,24 @@ class Sheet:
 				nodesFile2 = archive2.open(n)
 			elif n.endswith("links.csv"):
 				linksFile2 = archive2.open(n)
+
+		'''
+		Read nodes from blocks.csv (pre-CAM)
+        '''
+		nodes1 = StringIO(nodesFile1.read().decode('utf-8'))
+		nodesReader1 = csv.DictReader(nodes1, delimiter=',')
+		nodesData1 = self.readNodesDataFromCSV(list(nodesReader1))
+
+		'''
+		Read nodes from blocks.csv (post-CAM)
+		'''
 		nodes2 = StringIO(nodesFile2.read().decode('utf-8'))
-		nodesReader2 = csv.reader(nodes2)
-		firstLnNodes = next(nodesReader2)
-
-		assert firstLnNodes in [CSVFIELDS_NODES_V1, CSVFIELDS_NODES_V2, CSVFIELDS_NODES_V3], \
-			"Wrong column names in nodes .csv file."
-		if firstLnNodes == CSVFIELDS_NODES_V1:
-			nodesversion = 1
-		elif firstLnNodes == CSVFIELDS_NODES_V2:
-			nodesversion = 2
-		elif firstLnNodes == CSVFIELDS_NODES_V3:
-			nodesversion = 3
-		links = StringIO(linksFile2.read().decode('utf-8'))
-		linksReader2 = csv.reader(links)
-		firstLnLinks = next(linksReader2)
-		version = nodesversion
-		"Wrong column names in nodes .csv file."
-
-		for row in nodesReader2:
-			valence = 0
-			if version == 3:
-				shapeCol = 6
-			else:
-				shapeCol = 4
-			if row[4] == "neutral":
-				valence = 0
-			elif row[shapeCol] == "negative weak":
-				valence = -1
-			elif row[shapeCol] == "negative":
-				valence = -2
-			elif row[shapeCol] == "negative strong":
-				valence = -3
-			elif row[shapeCol] == "positive weak":
-				valence = 1
-			elif row[shapeCol] == "positive":
-				valence = 2
-			elif row[shapeCol] == "positive strong":
-				valence = 3
-			elif row[shapeCol] == "ambivalent":
-				valence = -99
-			index = float(row[0])
-			if version == 1:
-				index = float(row[7])
-			text = row[1]
-			nodesData2.update({text : (index, valence)})
+		nodesReader2 = csv.DictReader(nodes2, delimiter=',')
+		nodesData2 = self.readNodesDataFromCSV(list(nodesReader2))
 
 		'''
 		Create diff-CAM nodes
 		'''
-
 		pixelX = self.root.winfo_width()
 		pixelY = self.root.winfo_height()
 		for (t1, (i1, v1)) in nodesData1.items():
@@ -327,128 +244,23 @@ class Sheet:
 													 'text': t2 , 'radius': 50, 'coords': [rand_x, rand_y],
 													 'read-only': 1, 'acceptance': False}, diffTag=diffTag, draw=True)
 
+
+		''' 
+		Read links from links.csv (pre-CAM)
 		'''
-        Read links from links.csv (pre-CAM)
+		links1 = StringIO(linksFile1.read().decode('utf-8'))
+		linksReader1 = csv.DictReader(links1, delimiter=',')
+		linksData1 = self.readLinksDataFromCSV(list(linksReader1), nodesData1)
+
+		'''
+        Read links from links.csv (post-CAM)
         '''
-
-		for row in linksReader1:
-			strength = 0
-			directed = 1
-			if row[3] == "Solid-Strong":
-				strength = 3
-			elif row[3] == "Solid":
-				strength = 2
-			elif row[3] == "Solid-Weak":
-				strength = 1
-			elif row[3] == "Dashed-Strong":
-				strength = -3
-			elif row[3] == "Dashed":
-				strength = -2
-			elif row[3] == "Dashed-Weak":
-				strength = -1
-
-			if version == 2:
-				if row[6] == "uni":
-					directed = 1
-				elif row[6] == "none":
-					directed = 0
-			elif version == 1:
-				if row[10] == "uni":
-					directed = 1
-				elif row[10] == "none":
-					directed = 0
-			startingNodeIndex = None
-			endNodeIndex = None
-
-			for (t,(i, v)) in nodesData1.items():
-				if int(row[1]) == i:
-					startingNodeText = t
-					startingNodeIndex = self.lookupNodeIndex(startingNodeText)
-				elif int(row[2]) == i:
-					endNodeText = t
-					endNodeIndex = self.lookupNodeIndex(endNodeText)
-
-			directed = directed
-			strength = strength
-
-			linksData1.update({(startingNodeIndex, endNodeIndex, directed) : strength})
-
-			# Update node neighbors
-
-			self.getNodeByText(startingNodeText).addNeighbor(i1=endNodeText)
-			self.getNodeByText(endNodeText).addNeighbor(i1=startingNodeText)
-
-			if self.neighborsPre.get(startingNodeText) is None:
-				self.neighborsPre[startingNodeText] = [endNodeText]
-			else:
-				self.neighborsPre[startingNodeText].append(endNodeText)
-
-			if self.neighborsPre.get(endNodeText) is None:
-				self.neighborsPre[endNodeText] = [startingNodeText]
-			else:
-				self.neighborsPre[endNodeText].append(startingNodeText)
+		links2 = StringIO(linksFile2.read().decode('utf-8'))
+		linksReader2 = csv.DictReader(links2, delimiter=',')
+		linksData2 =  self.readLinksDataFromCSV(list(linksReader2), nodesData2)
 
 		'''
-		Read links from links.csv (post-CAM)
-		'''
-
-		for row in linksReader2:
-			strength = 0
-			directed = 1
-			if row[3] == "Solid-Strong":
-				strength = 3
-			elif row[3] == "Solid":
-				strength = 2
-			elif row[3] == "Solid-Weak":
-				strength = 1
-			elif row[3] == "Dashed-Strong":
-				strength = -3
-			elif row[3] == "Dashed":
-				strength = -2
-			elif row[3] == "Dashed-Weak":
-				strength = -1
-
-			if version == 2:
-				if row[6] == "uni":
-					directed = 1
-				elif row[6] == "none":
-					directed = 0
-			elif version == 1:
-				if row[10] == "uni":
-					directed = 1
-				elif row[10] == "none":
-					directed = 0
-			startingNodeIndex = None
-			endNodeIndex = None
-
-			for (t, (i, v)) in nodesData2.items():
-				if int(row[1]) == i:
-					startingNodeText = t
-					startingNodeIndex = self.lookupNodeIndex(startingNodeText)
-				elif int(row[2]) == i:
-					endNodeText = t
-					endNodeIndex = self.lookupNodeIndex(endNodeText)
-
-			directed = directed
-			strength = strength
-			linksData2.update({(startingNodeIndex, endNodeIndex, directed) : strength})
-
-			# Update node neighbors
-			self.getNodeByText(startingNodeText).addNeighbor(i2=endNodeText)
-			self.getNodeByText(endNodeText).addNeighbor(i2=startingNodeText)
-
-			if self.neighborsPost.get(startingNodeText) is None:
-				self.neighborsPost[startingNodeText] = [endNodeText]
-			else:
-				self.neighborsPost[startingNodeText].append(endNodeText)
-
-			if self.neighborsPost.get(endNodeText) is None:
-				self.neighborsPost[endNodeText] = [startingNodeText]
-			else:
-				self.neighborsPost[endNodeText].append(startingNodeText)
-
-		'''
-		Draw diff-CAM links
+		Create diff-CAM links
 		'''
 		for (k,v) in linksData1.items():
 			if k in linksData2:
@@ -550,6 +362,8 @@ class Sheet:
 			try:
 				neighbors = self.neighborsPre[t]
 				degree = len(neighbors)
+			except:
+				pass
 			finally:
 				degreeSum += degree
 		meanDegreePre = degreeSum / len(nodesData1)
@@ -605,6 +419,8 @@ class Sheet:
 			try:
 				neighbors = self.neighborsPost[t]
 				degree = len(neighbors)
+			except:
+				pass
 			finally:
 				degreeSum += degree
 		meanDegreePost = degreeSum / len(nodesData2)
@@ -798,9 +614,6 @@ class Sheet:
 		csvWriterNodes = csv.writer(csvFileNodes, delimiter=delim, quoting=csv.QUOTE_NONE,
 			escapechar='\\')
 		csvWriterNodes.writerow(CSVFIELDS_NODES_V4)
-		#		CSVFIELDS_NODES_V4 = ['id', 'title', 'x_pos', 'y_pos', 'width', 'height', 'shape', 'creator', 'num',
-		#							  'comment', 'timestamp', 'modifiable', 'CAM', 'valence_pre', 'valence_post',
-		#							  'deleted_by_user']
 
 		for n in self.nodes:
 			val = self.parseValenceTo(n.valence)
@@ -871,6 +684,116 @@ class Sheet:
 			r = [i, l.nA.index, l.nB.index, strength, "", i, dir, "", fnBase, strength_pre, strength_post, l.removed]
 			csvWriterLinks.writerow(r)
 			i = i + 1
+
+	def readNodesDataFromCSV(self, nodesReader):
+
+	#   DEPRECATED:
+	#   Check for older versions.
+	#	Versions with node id referred to as "id" are not supported anymore.
+
+	#	firstLnNodes = next(nodesReader)
+
+	#	version = 0
+
+	# Check if .csv header format corresponds to first two Empathica versions, in which case index field name
+	# is different from later versions
+	#if firstLnNodes == CSVFIELDS_NODES_V1:
+	#	version = 1
+	#elif firstLnNodes == CSVFIELDS_NODES_V2:
+	#	version = 2
+	#if version == 1 or 2:
+	#	idKey = 'id'
+	#else:
+	#	idKey = 'num'
+
+		nodesData = {}
+
+		for row in nodesReader:
+			# Read node index
+			index = float(row['id'])
+
+			# Read & parse node valence
+			valenceName = row['shape']
+			valence = 0
+			if valenceName == "neutral":
+				valence = 0
+			elif valenceName == "negative weak":
+				valence = -1
+			elif valenceName == "negative":
+				valence = -2
+			elif valenceName == "negative strong":
+				valence = -3
+			elif valenceName == "positive weak":
+				valence = 1
+			elif valenceName == "positive":
+				valence = 2
+			elif valenceName == "positive strong":
+				valence = 3
+			elif valenceName == "ambivalent":
+				valence = -99
+
+			# Read node text
+			text = row['title']
+
+			nodesData.update({text: (index, valence)})
+
+		return nodesData
+
+	def readLinksDataFromCSV(self, linksReader, nodesData):
+		linksData = {}
+		for row in linksReader:
+			strength = 0
+			if row['arrow_type'] == "uni":
+				directed = 1
+			else:
+				directed = 0
+
+			# Parse link strength
+			if row['line_style'] == "Solid-Strong":
+				strength = 3
+			elif row['line_style'] == "Solid":
+				strength = 2
+			elif row['line_style'] == "Solid-Weak":
+				strength = 1
+			elif row['line_style'] == "Dashed-Strong":
+				strength = -3
+			elif row['line_style'] == "Dashed":
+				strength = -2
+			elif row['line_style'] == "Dashed-Weak":
+				strength = -1
+
+			startingNodeIndex = None
+			endNodeIndex = None
+
+			startingNodeText =""
+			endNodeText = ""
+
+			for (t, (i, v)) in nodesData.items():
+				if float(row['starting_block']) == i:
+					startingNodeText = t
+					startingNodeIndex = self.lookupNodeIndex(startingNodeText)
+				elif float(row['ending_block']) == i:
+					endNodeText = t
+					endNodeIndex = self.lookupNodeIndex(endNodeText)
+
+			linksData.update({(startingNodeIndex, endNodeIndex, directed): strength})
+
+			# Update node neighbors
+
+			self.getNodeByText(startingNodeText).addNeighbor(i1=endNodeText)
+			self.getNodeByText(endNodeText).addNeighbor(i1=startingNodeText)
+
+			if self.neighborsPre.get(startingNodeText) is None:
+				self.neighborsPre[startingNodeText] = [endNodeText]
+			else:
+				self.neighborsPre[startingNodeText].append(endNodeText)
+
+			if self.neighborsPre.get(endNodeText) is None:
+				self.neighborsPre[endNodeText] = [startingNodeText]
+			else:
+				self.neighborsPre[endNodeText].append(startingNodeText)
+
+		return linksData
 
 	def exportToPng(self):
 		x=self.root.winfo_rootx()+self.canvas.winfo_x()
