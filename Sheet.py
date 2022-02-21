@@ -3,6 +3,7 @@
 import os
 import csv
 import cv2
+import json
 import numpy
 import zipfile
 from io import StringIO
@@ -164,6 +165,55 @@ class Sheet:
 		for n in self.nodes:
 			n.r = n.std_r
 			n.reDraw()
+
+	def openJSON(self):
+		"""
+		Open a JSON file.
+		"""
+		if self.fileOpen:
+			if tkinter.messagebox.askyesno(SAVESTR, ASKSAVESTR):
+				self.saveFileAs()
+			self.closeFile()
+
+		fileName = tkinter.filedialog.askopenfilename(initialdir = FILEDIR,title =
+			SELECTFILESTR,filetypes = [("CAMEL file","*.txt")])
+
+		with open(fileName) as file:
+			try:
+				data = json.load(file)
+				self.fileOpen = True
+				return data
+			except:
+				messagebox.showerror("Reading error", "File doesn't contain a valid JSON string.")
+				return {}
+
+	def parseCAMFromJson(self):
+		"""
+		Open and draw a CAM file serialized in JSON format, created by CAMEL.
+		"""
+		data = self.openJSON()
+		try:
+			nodesList=data['nodes']
+			linksList = data['connectors']
+			for n in nodesList:
+				id = n['id']
+				title = n['text']
+				valence = n['value']
+				x = n['position']['x']
+				y = n['position']['y']
+				self.addNode((x, y), data={'index': id, 'valence': valence, 'text': title, 'radius': 50,
+										'coords': [x, y], 'read-only':1, 'acceptance': False}, draw=True)
+			for c in linksList:
+				self.linkA = c['motherID']
+				self.linkB = c['daughterID']
+
+				### TODO: Is this interpretation correct? ###
+				strength = c['intensity']/3
+				bidir = 0 if c['isBidirectional'] == "False" else 1
+				self.addLink(directed=bidir, strength=strength, comment="",
+							 draw=True)
+		except DecodeError:
+			messagebox.showerror("Decode error", "Not a valid JSON CAM.")
 
 	def computeDiffCam(self, cam1, cam2):
 		""""""
@@ -816,9 +866,9 @@ class Sheet:
 			self.closeFile()
 
 		fileNamePre = tkinter.filedialog.askopenfilename(initialdir = FILEDIR,title =
-			SELECTPREFILESTR,filetypes = [("Empathica CAM","*.zip")])
+			SELECTPREFILESTR,filetypes = [("Empathica/Valence CAM","*.zip")])
 		fileNamePost = tkinter.filedialog.askopenfilename(initialdir = FILEDIR,title =
-			SELECTPOSTFILESTR,filetypes = [("Empathica CAM","*.zip")])
+			SELECTPOSTFILESTR,filetypes = [("Empathica/Valence CAM","*.zip")])
 
 		# don't proceed if no two files were selected
 		if fileNamePre == "" or fileNamePost == "":

@@ -51,7 +51,7 @@ PROGRAMSTR = "CAMMaker "
 
 ASKSAVESTR = _("Would you like to save your map?")
 ALLFILESSTR = _("All Files")
-FILESSTR = _(" Files")
+FILESSTR = _("Files")
 
 SELECTAGGRSTR = _("Select files to aggregate")
 SELECTFILESTR = _("Select file")
@@ -62,3 +62,4 @@ SELECTPOSTFILESTR = _("Select post-CAM file")
 MINUSSTR = _("Subtract CAMs")
 RESETSTR = _("Reset node sizes to default")
 EXPORTPNGSTR = _("Export as .png")
+OPENJSON = _("Read CAM from a JSON file")

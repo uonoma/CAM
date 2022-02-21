@@ -25,7 +25,11 @@ class MainMenu:
 
 		self.minusBtn = ImageButton(menu=self, image=os.path.join("data", "minus.png"),
 			cmd=self.parentSheet.openFilesForDiff, tooltiptext=MINUSSTR)
-		self.minusBtn.grid(row=0, column=3,padx=70)
+		self.minusBtn.grid(row=0, column=3,padx=140)
+
+		self.minusJsonBtn = ImageButton(menu=self, image=os.path.join("data", "minusJson.png"),
+			cmd=self.parentSheet.parseCAMFromJson, tooltiptext=MINUSSTR)
+		self.minusJsonBtn.grid(row=0, column=3, padx=70)
 
 		self.saveFileBtn = ImageButton(menu=self, image=os.path.join("data", "save.png"),
 			cmd=self.parentSheet.saveFileAs, tooltiptext=SAVESTR)
