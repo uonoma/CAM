@@ -215,11 +215,12 @@ class Sheet:
 		except DecodeError:
 			messagebox.showerror("Decode error", "Not a valid JSON CAM.")
 
-	def computeDiffCam(self, cam1, cam2):
+	def createDiffCAMFromZippedCSVs(self):
 		""""""
 		'''
         Open pre-CAM archive
         '''
+		cam1, cam2 = self.openFilesForDiff()
 		archive1 = zipfile.ZipFile(cam1, 'r')
 		names1 = archive1.namelist()
 		names1.sort()
@@ -230,7 +231,6 @@ class Sheet:
 				nodesFile1 = archive1.open(n)
 			elif n.endswith("links.csv"):
 				linksFile1 = archive1.open(n)
-
 
 		'''
 		Open post-CAM archive
@@ -666,7 +666,7 @@ class Sheet:
 		csvWriterNodes.writerow(CSVFIELDS_NODES_V4)
 
 		for n in self.nodes:
-			val = self.parseValenceTo(n.valence)
+			val = self.parseValence(n.valence)
 
 			# Add fields for pre-/post-CAM valence
 			if n.diffTag == "A":
@@ -678,7 +678,7 @@ class Sheet:
 			else:
 				try:
 					val_pre_int = int(n.diffTag)
-					val_pre = self.parseValenceTo(val_pre_int)
+					val_pre = self.parseValence(val_pre_int)
 					val_post = val
 				except:
 					val_pre = ""
@@ -723,7 +723,7 @@ class Sheet:
 			else:
 				try:
 					strength_pre_int = int(n.diffTag)
-					strength_pre = self.parseStrengthTo(strength_pre_int)
+					strength_pre = self.parseStrength(strength_pre_int)
 					strength_post = strength
 				except:
 					strength_pre = ""
@@ -875,7 +875,7 @@ class Sheet:
 			return
 
 		self.fileOpen = True
-		self.computeDiffCam(fileNamePre, fileNamePost)
+		return fileNamePre, fileNamePost
 
 	def reInitNodes(self):
 		for n in self.nodes:
@@ -1044,7 +1044,7 @@ class Sheet:
 	def closeStatistics(self):
 		self.top.destroy()
 
-	def parseValenceTo(self, valence):
+	def parseValence(self, valence):
 		if valence == 0:
 			valStr = "neutral"
 		elif valence == -1:
@@ -1063,7 +1063,7 @@ class Sheet:
 			valStr = "ambivalent"
 		return valStr
 
-	def parseStrengthTo(self, strength):
+	def parseStrength(self, strength):
 		if strength == -1:
 			strengthStr = "Dashed-Weak"
 		elif strength == -2:

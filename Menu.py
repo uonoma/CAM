@@ -24,7 +24,7 @@ class MainMenu:
 		menubar = self.menu
 
 		self.minusBtn = ImageButton(menu=self, image=os.path.join("data", "minus.png"),
-			cmd=self.parentSheet.openFilesForDiff, tooltiptext=MINUSSTR)
+			cmd=self.parentSheet.createDiffCAMFromZippedCSVs, tooltiptext=MINUSSTR)
 		self.minusBtn.grid(row=0, column=3,padx=140)
 
 		self.minusJsonBtn = ImageButton(menu=self, image=os.path.join("data", "minusJson.png"),
