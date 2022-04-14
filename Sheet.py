@@ -166,61 +166,129 @@ class Sheet:
 			n.r = n.std_r
 			n.reDraw()
 
-	def openJSON(self):
+	def openJSONFilesForDelta(self):
 		"""
 		Open a JSON file.
 		"""
+
 		if self.fileOpen:
 			if tkinter.messagebox.askyesno(SAVESTR, ASKSAVESTR):
 				self.saveFileAs()
 			self.closeFile()
 
-		fileName = tkinter.filedialog.askopenfilename(initialdir = FILEDIR,title =
-			SELECTFILESTR,filetypes = [("CAMEL file","*.txt")])
+		fileNamePre = tkinter.filedialog.askopenfilename(initialdir = FILEDIR,title =
+		SELECTPREFILESTR,filetypes = [("CAMEL file","*.txt")])
+		fileNamePost = tkinter.filedialog.askopenfilename(initialdir = FILEDIR,title =
+		SELECTPOSTFILESTR,filetypes = [("CAMEL file","*.txt")])
 
-		with open(fileName) as file:
+		# don't proceed if no two files were selected
+		if fileNamePre == "" or fileNamePost == "":
+			return
+
+		with open(fileNamePre) as file:
 			try:
-				data = json.load(file)
-				self.fileOpen = True
-				return data
+				dataPre = json.load(file)
 			except:
 				messagebox.showerror("Reading error", "File doesn't contain a valid JSON string.")
 				return {}
 
-	def parseCAMFromJson(self):
+		with open(fileNamePost) as file:
+			try:
+				dataPost = json.load(file)
+			except:
+				messagebox.showerror("Reading error", "File doesn't contain a valid JSON string.")
+				return {}
+
+		self.fileOpen = True
+		return dataPre, dataPost
+
+	def parseCAMNodeDataFromJSON(self, data):
 		"""
 		Open and draw a CAM file serialized in JSON format, created by CAMEL.
 		"""
-		data = self.openJSON()
+		nodesData = {}
 		try:
 			nodesList=data['nodes']
-			linksList = data['connectors']
 			for n in nodesList:
-				id = n['id']
-				title = n['text']
+				id = n['id'].strip()
+				title = n['text'].strip()
 				valence = n['value']
-				x = n['position']['x']
-				y = n['position']['y']
-				self.addNode((x, y), data={'index': id, 'valence': valence, 'text': title, 'radius': 50,
-										'coords': [x, y], 'read-only':1, 'acceptance': False}, draw=True)
-			for c in linksList:
-				self.linkA = c['motherID']
-				self.linkB = c['daughterID']
+				nodesData.update({title: (id, valence)})
 
-				### TODO: Is this interpretation correct? ###
-				strength = c['intensity']/3
-				bidir = 0 if c['isBidirectional'] == "False" else 1
-				self.addLink(directed=bidir, strength=strength, comment="",
-							 draw=True)
-		except DecodeError:
+		except:
 			messagebox.showerror("Decode error", "Not a valid JSON CAM.")
 
-	def createDiffCAMFromZippedCSVs(self):
-		""""""
+		return nodesData
+
+	def parseCAMLinkDataFromJSON(self, data, nodesData):
+		"""
+		Open and draw a CAM file serialized in JSON format, created by CAMEL.
+		"""
+		linksData = {}
+		linksList = data['connectors']
+
+		for c in linksList:
+			### TODO: Is this interpretation correct? ###
+			strength = c['intensity']/3
+			bidir = 0 if c['isBidirectional'] == "False" else 1
+
+			startingNodeIndex = None
+			endNodeIndex = None
+
+			for (t, (i, v)) in nodesData.items():
+				if c['motherID'].strip() == i:
+					startingNodeText = t
+					startingNodeIndex = self.lookupNodeIndex(startingNodeText)
+				elif c['daughterID'].strip() == i:
+					endNodeText = t
+					endNodeIndex = self.lookupNodeIndex(endNodeText)
+
+			linksData.update({(startingNodeIndex, endNodeIndex, bidir): strength})
+
+			# Update node neighbors
+
+			self.getNodeByText(startingNodeText).addNeighbor(i1=endNodeText)
+			self.getNodeByText(endNodeText).addNeighbor(i1=startingNodeText)
+
+			if self.neighborsPre.get(startingNodeText) is None:
+				self.neighborsPre[startingNodeText] = [endNodeText]
+			else:
+				self.neighborsPre[startingNodeText].append(endNodeText)
+
+			if self.neighborsPre.get(endNodeText) is None:
+				self.neighborsPre[endNodeText] = [startingNodeText]
+			else:
+				self.neighborsPre[endNodeText].append(startingNodeText)
+
+		return linksData
+
+
+	def createDeltaCAMFromJSON(self):
+		"""
+		Read CAMEL JSON files of two CAMs and visualize resulting delta-CAM.
+		"""
+
+		dataPre, dataPost = self.openJSONFilesForDelta()
+		nodesData1 = self.parseCAMNodeDataFromJSON(dataPre)
+		nodesData2 = self.parseCAMNodeDataFromJSON(dataPost)
+
+		self.createDeltaCAMNodes(nodesData1, nodesData2)
+
+		linksData1 = self.parseCAMLinkDataFromJSON(dataPre, nodesData1)
+		linksData2 = self.parseCAMLinkDataFromJSON(dataPost, nodesData2)
+
+		self.createDeltaCAMLinks(linksData1, linksData2)
+
+		self.calculateStatistics(nodesData1, nodesData2, linksData1, linksData2)
+
+	def createDeltaCAMFromZippedCSVs(self):
+		"""
+		Read Empathica/Valence archives of two CAMs, parse CSV node and link data and visualize resulting delta-CAM
+		"""
 		'''
         Open pre-CAM archive
         '''
-		cam1, cam2 = self.openFilesForDiff()
+		cam1, cam2 = self.openCAMArchivesForDelta()
 		archive1 = zipfile.ZipFile(cam1, 'r')
 		names1 = archive1.namelist()
 		names1.sort()
@@ -262,6 +330,34 @@ class Sheet:
 		'''
 		Create diff-CAM nodes
 		'''
+		self.createDeltaCAMNodes(nodesData1, nodesData2)
+
+		''' 
+		Read links from links.csv (pre-CAM)
+		'''
+		links1 = StringIO(linksFile1.read().decode('utf-8'))
+		linksReader1 = csv.DictReader(links1, delimiter=',')
+		linksData1 = self.readLinksDataFromCSV(list(linksReader1), nodesData1)
+
+		'''
+        Read links from links.csv (post-CAM)
+        '''
+		links2 = StringIO(linksFile2.read().decode('utf-8'))
+		linksReader2 = csv.DictReader(links2, delimiter=',')
+		linksData2 =  self.readLinksDataFromCSV(list(linksReader2), nodesData2)
+
+		'''
+		Create diff-CAM links
+		'''
+		self.createDeltaCAMLinks(linksData1, linksData2)
+
+		''' 
+		Calculate statistics 
+		'''
+
+		self.calculateDeltaStatistics(nodesData1, nodesData2, linksData1, linksData2)
+
+	def createDeltaCAMNodes(self, nodesData1, nodesData2):
 		pixelX = self.root.winfo_width()
 		pixelY = self.root.winfo_height()
 		for (t1, (i1, v1)) in nodesData1.items():
@@ -294,24 +390,7 @@ class Sheet:
 													 'text': t2 , 'radius': 50, 'coords': [rand_x, rand_y],
 													 'read-only': 1, 'acceptance': False}, diffTag=diffTag, draw=True)
 
-
-		''' 
-		Read links from links.csv (pre-CAM)
-		'''
-		links1 = StringIO(linksFile1.read().decode('utf-8'))
-		linksReader1 = csv.DictReader(links1, delimiter=',')
-		linksData1 = self.readLinksDataFromCSV(list(linksReader1), nodesData1)
-
-		'''
-        Read links from links.csv (post-CAM)
-        '''
-		links2 = StringIO(linksFile2.read().decode('utf-8'))
-		linksReader2 = csv.DictReader(links2, delimiter=',')
-		linksData2 =  self.readLinksDataFromCSV(list(linksReader2), nodesData2)
-
-		'''
-		Create diff-CAM links
-		'''
+	def createDeltaCAMLinks(self, linksData1, linksData2):
 		for (k,v) in linksData1.items():
 			if k in linksData2:
 				strength = linksData2[k]
@@ -321,22 +400,23 @@ class Sheet:
 				diffTag ="D"
 			self.linkA = k[0]
 			self.linkB = k[1]
+			n1 = self.getNodeByIndex(self.linkA)
+			n2 = self.getNodeByIndex(self.linkB)
 			self.addLink(directed=k[2], strength=strength, comment="",
 						 draw=True, diffTag=diffTag)
 
 		for (k,v) in linksData2.items():
-				if not k in linksData1:
-					strength = v
-					diffTag = "A"
-					self.linkA = k[0]
-					self.linkB = k[1]
-					self.addLink(directed=k[2], strength=strength, comment="",
-						draw=True, diffTag=diffTag)
+			if not k in linksData1:
+				strength = v
+				diffTag = "A"
+				self.linkA = k[0]
+				self.linkB = k[1]
+				n1 = self.getNodeByIndex(self.linkA)
+				n2 = self.getNodeByIndex(self.linkA)
+				self.addLink(directed=k[2], strength=strength, comment="",
+							 draw=True, diffTag=diffTag)
 
-		''' 
-		Calculate statistics 
-		'''
-
+	def calculateDeltaStatistics(self, nodesData1, nodesData2, linksData1, linksData2):
 		# Statistics dictionaries for pre- and post-CAMs
 		preNodes = {}
 		postNodes = {}
@@ -373,7 +453,7 @@ class Sheet:
 		postLinks['negatives number'] = 0
 
 		# Calculate statistical parameters & fill dictionaries
-		for (_, (_,v)) in nodesData1.items():
+		for (_, (_, v)) in nodesData1.items():
 			preNodes['total number'] = preNodes['total number'] + 1
 			# For calculation of mean: Use 0 as valence for ambivalent nodes (instead of -99)
 			if v == -99:
@@ -427,7 +507,7 @@ class Sheet:
 				preLinks['negatives number'] = preLinks['negatives number'] + 1
 
 		# Calculate density
-		preDensity = preLinks['total number']/binomial(preNodes['total number'], 2)
+		preDensity = preLinks['total number'] / binomial(preNodes['total number'], 2)
 
 		'''
 		Same for post-CAM
@@ -484,7 +564,7 @@ class Sheet:
 				postLinks['negatives number'] = postLinks['negatives number'] + 1
 
 		# Calculate density
-		postDensity = postLinks['total number']/binomial(postNodes['total number'], 2)
+		postDensity = postLinks['total number'] / binomial(postNodes['total number'], 2)
 
 		'''
 		Create statistics table
@@ -508,7 +588,7 @@ class Sheet:
 		e.grid(row=row, column=0, sticky=NSEW)
 		e.insert(END, "PRE-CAM: NODES")
 
-		for (k,v) in pairs1.items():
+		for (k, v) in pairs1.items():
 			row += 1
 			# First column: field name
 			e = Entry(self.top, relief=GROOVE)
@@ -518,7 +598,7 @@ class Sheet:
 			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=1, sticky=NSEW)
 			e.insert(END, v)
-		for (k,v) in pairs2.items():
+		for (k, v) in pairs2.items():
 			row += 1
 			# First column: field name
 			e = Entry(self.top, relief=GROOVE)
@@ -547,7 +627,7 @@ class Sheet:
 		e.grid(row=row, column=0, ipadx=25, sticky=NSEW)
 		e.insert(END, "PRE-CAM: LINKS")
 
-		for (k,v) in preLinks.items():
+		for (k, v) in preLinks.items():
 			row += 1
 			# First column: field name
 			e = Entry(self.top, relief=GROOVE)
@@ -579,7 +659,7 @@ class Sheet:
 		e.grid(row=row, column=2, sticky=NSEW)
 		e.insert(END, "POST-CAM: NODES")
 
-		for (k,v) in pairs1.items():
+		for (k, v) in pairs1.items():
 			row += 1
 			# First column: field name
 			e = Entry(self.top, relief=GROOVE)
@@ -589,7 +669,7 @@ class Sheet:
 			e = Entry(self.top, relief=GROOVE)
 			e.grid(row=row, column=3, sticky=NSEW)
 			e.insert(END, v)
-		for (k,v) in pairs2.items():
+		for (k, v) in pairs2.items():
 			row += 1
 			# First column: field name
 			e = Entry(self.top, relief=GROOVE)
@@ -618,7 +698,7 @@ class Sheet:
 		e.grid(row=row, column=2, ipadx=25, sticky=NSEW)
 		e.insert(END, "POST-CAM: LINKS")
 
-		for (k,v) in postLinks.items():
+		for (k, v) in postLinks.items():
 			row += 1
 			# First column: field name
 			e = Entry(self.top, relief=GROOVE)
@@ -859,7 +939,7 @@ class Sheet:
 		# restore statistics window
 		self.top.deiconify()
 
-	def openFilesForDiff(self):
+	def openCAMArchivesForDelta(self):
 		if self.fileOpen:
 			if tkinter.messagebox.askyesno(SAVESTR, ASKSAVESTR):
 				self.saveFileAs()
