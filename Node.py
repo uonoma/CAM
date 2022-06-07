@@ -490,7 +490,7 @@ class Node:
 
 		if self.hasComment:
 			self.comment.deleteComment(event)
-		self.parentSheet.removeNode(self.index)
+		self.parentSheet.removeNodeLinks(self.index)
 
 		try:
 			diffTag = int(self.diffTag)
